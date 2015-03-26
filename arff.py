@@ -1,18 +1,38 @@
 # -*- coding: utf-8 -*-
 
-import re
+import re,numpy as np
 
 class Dataset(object):
+
     def __init__(self,attributes,instances,categories):
         self.attributes=attributes
         self.instances=instances
         self.categories=categories
 
+    def size(self):
+        return len(self.instances)
+    
+    def dim(self):
+        return len(self.attributes)
+        
+    def toMatrix(self):
+        toVectors=lambda inst:inst.values 
+        featureVectors=map(toVectors,self.instances)
+        return np.array(featureVectors)
+
 class Instance(object):
+    
     def __init__(self,values,category):        
         self.values=values
         self.category=category
-    
+
+    def __str__(self):
+        s=""
+        for cord in self.values:
+            s+=str(cord)+","
+        s+=self.category +"\n"   
+        return s
+        
 def readArffDataset(filename):
     raw=open(filename).read()
     attributes,data=splitArff(raw)
@@ -45,15 +65,14 @@ def parseInstances(data):
     toNumber= lambda s: float(s)
     for line in data.split("\n"):
         values=line.split(",")
-        category=values.pop()
-        values=map(toNumber,values)
-        instance=Instance(values,category)
-        instances.append(instance)
+        if(len(values)>1):
+            category=values.pop()
+            values=map(toNumber,values)
+            instance=Instance(values,category)
+            instances.append(instance)
     return instances
         
 def parseCategories(line):
     categories=line.split("{")[1]
     categories=categories.replace("}", "")
     return categories.split()
-
-readArffDataset("C:/Users/user/Desktop/kwolek/output/5_12_8_0.arff")
