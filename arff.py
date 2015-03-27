@@ -20,6 +20,12 @@ class Dataset(object):
         featureVectors=map(toVectors,self.instances)
         return np.array(featureVectors)
 
+    def _str_(self):
+        s=""
+        for instance in self.instances:
+            s+=str(instance)
+        return s
+
 class Instance(object):
     
     def __init__(self,values,category):        
