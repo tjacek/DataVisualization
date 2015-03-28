@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import re,numpy as np
+from sklearn.datasets.base import Bunch
 
-class Dataset(object):
+class ArffDataset(object):
 
     def __init__(self,attributes,instances,categories):
         self.attributes=attributes
@@ -20,6 +21,18 @@ class Dataset(object):
         featureVectors=map(toVectors,self.instances)
         return np.array(featureVectors)
 
+    def getTargets(self):
+        extractCategory=lambda inst:self.getIntegerCategory(inst.category)
+        return np.array(map(extractCategory,self.instances))
+    
+    def getIntegerCategory(self,label):
+        return self.categories.index(label)
+        
+    def toBunch(self):
+        data=self.toMatrix()
+        target=self.getTargets()
+        return Bunch(data=data,target=target,target_names=self.categories) 
+        
     def _str_(self):
         s=""
         for instance in self.instances:
@@ -44,7 +57,7 @@ def readArffDataset(filename):
     attributes,data=splitArff(raw)
     attrNames,categories=parseAttributes(attributes)
     instances=parseInstances(data)
-    return Dataset(attributes,instances,categories)
+    return ArffDataset(attributes,instances,categories)
 
 def splitArff(raw):
     separator="@DATA"
