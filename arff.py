@@ -1,42 +1,50 @@
 # -*- coding: utf-8 -*-
 
 import re,numpy as np
-from sklearn.datasets.base import Bunch
 
 class ArffDataset(object):
 
     def __init__(self,attributes,instances,categories):
         self.attributes=attributes
-        self.instances=instances
-        self.categories=categories
+        data,target=getMatrixDataset(instances,categories)
+        self.data=data
+        self.target=target
+        self.target_names=categories
 
     def size(self):
-        return len(self.instances)
+        return len(self.target)
     
     def dim(self):
-        return len(self.attributes)
-        
-    def toMatrix(self):
-        toVectors=lambda inst:inst.values 
-        featureVectors=map(toVectors,self.instances)
-        return np.array(featureVectors)
+        return len(self.attributes)        
 
-    def getTargets(self):
-        extractCategory=lambda inst:self.getIntegerCategory(inst.category)
-        return np.array(map(extractCategory,self.instances))
-    
-    def getIntegerCategory(self,label):
-        return self.categories.index(label)
+    def getCategory(self,i):
+        index=self.target[i]
+        return self.target_names[index]
         
-    def toBunch(self):
-        data=self.toMatrix()
-        target=self.getTargets()
-        return Bunch(data=data,target=target,target_names=self.categories) 
+    def applyReduction(self,newDim,reduction):
+        self.data,reduName=reduction(self.data,newDim)
+        self.attributes=[]
+        for i in range(newDim):
+            self.attributes.append(reduName+"_"+str(i))
+        return reduName
         
-    def _str_(self):
+    def __str__(self):
+        s="@RELATION scikit \n"
+        for atr in self.attributes:
+            s+="@ATTRIBUTE "+ atr+" numeric\n"
+        s+="@ATTRIBUTE class {" + self.categories() +"}\n"  
+        s+='@Data\n'
+        for i in range(self.size()):
+            sample=self.data[i]
+            for cord in sample:
+                s+= str(cord) +','
+            s+= self.getCategory(i)+'\n'    
+        return s
+   
+    def categories(self):
         s=""
-        for instance in self.instances:
-            s+=str(instance)
+        for cat in self.target_names:
+            s+=cat+' '
         return s
 
 class Instance(object):
@@ -51,7 +59,22 @@ class Instance(object):
             s+=str(cord)+","
         s+=self.category +"\n"   
         return s
-        
+
+def getMatrixDataset(instances,categories):
+    dataset=toMatrix(instances)
+    targets=getTargets(instances,categories)
+    return dataset,targets
+
+def toMatrix(instances):
+    toVectors=lambda inst:inst.values 
+    featureVectors=map(toVectors,instances)
+    return np.array(featureVectors)
+
+def getTargets(instances,categories):
+    getIntegerCategory=lambda label:categories.index(label)
+    extractCategory=lambda inst:getIntegerCategory(inst.category)
+    return np.array(map(extractCategory,instances))
+    
 def readArffDataset(filename):
     raw=open(filename).read()
     attributes,data=splitArff(raw)
