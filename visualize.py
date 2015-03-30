@@ -7,12 +7,12 @@ Created on Sun Mar 29 16:52:35 2015
 import arff,reduction,numpy as np,matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-def showReduction(bunch,reduction,name='dataset'):
+def showReduction(bunch,reduction,name='dataset',lege=True):
     X = bunch.data
     y = bunch.target
     target_names = bunch.target_names
 
-    X_r=reduction(X,2)
+    X_r,reductionName=reduction(X,2)
     N=len(target_names)
     
     numbers=range(N)
@@ -22,8 +22,9 @@ def showReduction(bunch,reduction,name='dataset'):
     for i, target_name in zip( numbers, target_names):
         m=pointShape[i / 9]
         plt.scatter(X_r[y == i, 0], X_r[y == i, 1],c=getColor(i),marker=m, label=target_name)
-    plt.legend()
-    plt.title('PCA of '+name)
+    if(lege):
+        plt.legend()
+    plt.title(reductionName+' of '+name)
     plt.show()  
   
 def showReduction3D(bunch,reduction,name='dataset'):
@@ -46,7 +47,7 @@ def showReduction3D(bunch,reduction,name='dataset'):
     ax.set_xlabel('X Label')
     ax.set_ylabel('Y Label')
     ax.set_zlabel('Z Label')
-    plt.title(reductionName +' of '+name)
+    plt.title(reductionName +' of ' + name)
     plt.show()
 
 def getArea(index):
@@ -57,9 +58,14 @@ def getColor(index):
     cls="bgrcmykw"
     i=index % len(cls)
     return cls[i]
-    
-reduction.reduceDataset("C:/Users/user/Desktop/kwolek/output/3_8_4_0.arff")
-    
+
+prefix=    "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
+name= prefix+"3_12_8.arff"   
+dataset=arff.readArffDataset(name)  
+showReduction(dataset,reduction.lleReduction,"3_12_8",False)
+#reduction.reduceDataset(name,200,reduction.pcaReduction)
+       
+
 #dataset=arff.readArffDataset("C:/Users/user/Desktop/kwolek/output/3_8_4_0.arff")
 #showReduction3D(dataset,reduction.mdaReduction)
 #show2D(pcaReduction(dataset))

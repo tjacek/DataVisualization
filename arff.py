@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re,numpy as np
+from sklearn import feature_selection
 
 class ArffDataset(object):
 
@@ -10,6 +11,8 @@ class ArffDataset(object):
         self.data=data
         self.target=target
         self.target_names=categories
+        selector = feature_selection.VarianceThreshold()
+        self.data=selector.fit_transform(self.data)
 
     def size(self):
         return len(self.target)
@@ -22,6 +25,7 @@ class ArffDataset(object):
         return self.target_names[index]
         
     def applyReduction(self,newDim,reduction):
+        #print(self.data)
         self.data,reduName=reduction(self.data,newDim)
         self.attributes=[]
         for i in range(newDim):
