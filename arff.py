@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import re,numpy as np
-from sklearn import feature_selection
+from sklearn import feature_selection,preprocessing
 
 class ArffDataset(object):
 
-    def __init__(self,attributes,instances,categories):
+    def __init__(self,attributes,instances,categories,scaled=True):
         self.attributes=attributes
         data,target=getMatrixDataset(instances,categories)
         self.data=data
         self.target=target
         self.target_names=categories
+        if(scaled):
+            self.preprocess()
+    
+    def preprocess(self):
         selector = feature_selection.VarianceThreshold()
         self.data=selector.fit_transform(self.data)
-
+        self.data=preprocessing.scale(self.data)        
+        
     def size(self):
         return len(self.target)
     
