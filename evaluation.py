@@ -9,7 +9,7 @@ import sklearn.cross_validation as cv
 import sklearn.grid_search as gs
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
 
 class OptimizedSVM(object):
     def __init__(self):
@@ -33,6 +33,19 @@ class OptimizedRandomForest(object):
     
     def gridSearch(self,X_train,y_train,metric='accuracy'):
         clf = gs.GridSearchCV(self.rf,self.params, cv=5,scoring=metric)
+        clf.fit(X_train,y_train)
+        return clf
+
+class OptimizedAdaBoost(object):
+    def __init__(self):
+        params={}
+        params['n_estimators']=[50,100,150,200,300] 
+        params['learning_rate']=[0.5,1.0,1.5,2.0]
+        self.params=[params]
+        self.ab=AdaBoostClassifier(n_estimators=100)
+
+    def gridSearch(self,X_train,y_train,metric='accuracy'):
+        clf = gs.GridSearchCV(self.ab,self.params, cv=5,scoring=metric)
         clf.fit(X_train,y_train)
         return clf
 
@@ -62,7 +75,7 @@ def evalSVM(dataset):
     y=dataset.target
     X_train, X_test, y_train, y_test = cv.train_test_split(
                                        X, y, test_size=0.5, random_state=0)
-    svm_opt=OptimizedRandomForest()
+    svm_opt=OptimizedAdaBoost()
     clf=svm_opt.gridSearch(X_train,y_train)
     
     evalOnTrainData(clf)
