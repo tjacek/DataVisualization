@@ -81,7 +81,18 @@ def evalSVM(dataset):
     evalOnTrainData(clf)
     evalOnTestData(X_test,y_test,clf)
 
-prefix =  "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
-name= prefix+"3_12_8.arff"   
-dataset=arff.readArffDataset(name)
-evalSVM(dataset)
+def determisticEval(trainName,testName):
+    train=arff.readArffDataset(trainName)
+    test=arff.readArffDataset(testName)
+    svm_opt=OptimizedRandomForest()
+    clf=svm_opt.gridSearch(train.data,train.target)  
+    evalOnTrainData(clf)
+    evalOnTestData(test.data,test.target,clf)
+
+train = "C:/Users/user/Desktop/kwolek/LargeDataset/train.arff"
+test  = "C:/Users/user/Desktop/kwolek/LargeDataset/test.arff"
+determisticEval(train,test)
+#prefix =  "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
+#name= prefix+"3_12_8.arff"   
+#dataset=arff.readArffDataset(name)
+#evalSVM(dataset)
