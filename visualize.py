@@ -59,10 +59,10 @@ def getColor(index):
     i=index % len(cls)
     return cls[i]
 
-prefix=    "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
-name= prefix+"3_12_8.arff"   
+prefix=    "C:/Users/TP/Desktop/doktoranckie/"
+name= prefix+"timeHist.arff"   
 dataset=arff.readArffDataset(name)  
-showReduction(dataset,reduction.lleReduction,"3_12_8",False)
+showReduction(dataset,reduction.mdaReduction,"3_12_8",False)
 #reduction.reduceDataset(name,200,reduction.pcaReduction)
        
 

@@ -70,12 +70,12 @@ def evalOnTestData(X_test,y_test,clf):
     y_true, y_pred = y_test, clf.predict(X_test)
     print(classification_report(y_true, y_pred))
 
-def evalSVM(dataset):
+def randomEval(dataset):
     X=dataset.data
     y=dataset.target
     X_train, X_test, y_train, y_test = cv.train_test_split(
                                        X, y, test_size=0.5, random_state=0)
-    svm_opt=OptimizedAdaBoost()
+    svm_opt=OptimizedRandomForest()
     clf=svm_opt.gridSearch(X_train,y_train)
     
     evalOnTrainData(clf)
@@ -84,14 +84,15 @@ def evalSVM(dataset):
 def determisticEval(trainName,testName):
     train=arff.readArffDataset(trainName)
     test=arff.readArffDataset(testName)
-    svm_opt=OptimizedRandomForest()
+    svm_opt=OptimizedSVM()
     clf=svm_opt.gridSearch(train.data,train.target)  
     evalOnTrainData(clf)
     evalOnTestData(test.data,test.target,clf)
 
-train = "C:/Users/user/Desktop/kwolek/LargeDataset/train.arff"
-test  = "C:/Users/user/Desktop/kwolek/LargeDataset/test.arff"
-determisticEval(train,test)
+prefix=    "C:/Users/TP/Desktop/doktoranckie/"
+name= prefix+"linearHist.arff" 
+dataset=arff.readArffDataset(name)
+randomEval(dataset)
 #prefix =  "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
 #name= prefix+"3_12_8.arff"   
 #dataset=arff.readArffDataset(name)
