@@ -5,6 +5,7 @@ import theano
 import theano.tensor as T
 import arff
 from theano.tensor.shared_randomstreams import RandomStreams
+from sklearn import preprocessing
 
 class dA(object):
 
@@ -66,6 +67,7 @@ class dA(object):
             self.x = input
 
         self.params = [self.W, self.b, self.b_prime]
+        self.transform=None
 
     def get_corrupted_input(self, input, corruption_level):
         return self.theano_rng.binomial(size=input.shape, n=1,
@@ -93,6 +95,14 @@ class dA(object):
         ]
 
         return (cost, updates)
+    
+    def tranform(self,corruption_level=0.1):
+        if(self.transform==None):
+            tilde_x = self.get_corrupted_input(self.x, corruption_level)
+            y = self.get_hidden_values(tilde_x)
+            z = self.get_reconstructed_input(y)
+            self.transform = theano.function([],z)
+        return self.transform()
 
 def getModel(x_in,visable_units, hidden_units=100,learning_rate=0.13):
     rng = numpy.random.RandomState(123)
@@ -117,21 +127,28 @@ def getModel(x_in,visable_units, hidden_units=100,learning_rate=0.13):
         updates=updates
     )
     return train_da,da
-    
+
+def error(da):
+    err=(abs(da.x -da.tranform()))#**2
+    n=len(err[0])
+    v=numpy.ones(n) / float(n)
+    return numpy.sum(err*v)/len(err)
+
 def train(name="linearHist.arff",training_epochs=1000):
     name="linearHist.arff"
     dataset=arff.readArffDataset(name)
     X=dataset.data
-    Y=dataset.target
-    print(X)
-    train_da,da=getModel(X,len(X[0]))
+    min_max_scaler = preprocessing.MinMaxScaler()
+    X = min_max_scaler.fit_transform(X)
+    train_da,da=getModel(X,len(X[0]),100)
     start_time = time.clock()
     for epoch in xrange(training_epochs):
         cost=train_da()
-    #    print('Training epoch '+ str(epoch) + 'cost ' + str(cost))
+        print('Training epoch '+ str(epoch) + 'cost ' + str(cost))
     end_time = time.clock()
     training_time = (end_time - start_time)
     print("Time "+str(training_time))
+    print(error(da))
 
 if __name__ == "__main__":
     train()
