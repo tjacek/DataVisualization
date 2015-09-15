@@ -25,8 +25,28 @@ def showReduction(bunch,reduction,name='dataset',lege=True):
     if(lege):
         plt.legend()
     plt.title(reductionName+' of '+name)
-    plt.show()  
-  
+    plt.show()
+
+def showReductionAdnotated(bunch,reduction,name='dataset',lege=True):  
+    x = bunch.data
+    y = bunch.target
+    target_names = bunch.target_names
+    X_r,reductionName=reduction(x,2)
+    X_r=np.transpose(X_r)
+    fig, ax = plt.subplots()
+    numbers=range(len(target_names))
+    #c_p=[getColor(i) for i in target_names ]
+    #ax.scatter(X_r[0], X_r[1],c=c_p)
+    pointShape='ovs'
+    for i, target_name in zip( numbers, target_names):
+        m=pointShape[i / 9]
+        plt.scatter(X_r[0,y == i], X_r[1,y == i],c=getColor(i),marker=m, label=target_name)
+    for i,txt in enumerate(list(y)):
+        print(type(X_r[0,i])) 
+        ax.annotate(str(txt),(X_r[0,i], X_r[1,i]))
+    plt.title(reductionName+' of '+name)
+    plt.show()
+
 def showReduction3D(bunch,reduction,name='dataset'):
     X = bunch.data
     y = bunch.target
@@ -55,14 +75,16 @@ def getArea(index):
     return np.pi * (3+div)**2
     
 def getColor(index):
+    print("qwerty")
+    print(type(index))
     cls="bgrcmykw"
     i=index % len(cls)
     return cls[i]
 
-prefix=    "C:/Users/TP/Desktop/doktoranckie/"
-name= prefix+"timeHist.arff"   
+path="/home/user/Desktop/DeepActionLearning/"
+name= path+"raw.arff"   
 dataset=arff.readArffDataset(name)  
-showReduction(dataset,reduction.mdaReduction,"3_12_8",False)
+showReductionAdnotated(dataset,reduction.tsneReduction,"3_12_8",False)
 #reduction.reduceDataset(name,200,reduction.pcaReduction)
        
 
