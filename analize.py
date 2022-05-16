@@ -8,10 +8,10 @@ from sklearn.decomposition import PCA
 import pandas as pd 
 
 def show_data(in_path):
-    df = pd.read_csv(in_path, sep='\s+')
-    vector=df.to_numpy()
-    X=vector[:,1:]
-    names=vector[:,0]
+    names,X = read_data(in_path)
+#    vector=df.to_numpy()
+#    X=vector[:,1:]
+#    names=vector[:,0]
     pca = PCA(n_components=2)
     x_t=pca.fit(X).transform(X)
     print(pca.components_)
@@ -26,10 +26,21 @@ def plot(names,data):
         ax.annotate(txt,data[i])
     plt.show()
 
-#def showDataset():
-#    dataset=arff.readArffDataset("innovation_.arff")     
-#    x,y=apply_MDA(dataset.data)
-#    countryVisual(x,y,dataset.target)
+def read_data(in_path):
+    if(type(in_path)==list):
+        all_dfs=[ pd.read_csv(path_i,sep='\s+') 
+                for path_i in in_path]
+        main_col=all_dfs[0].columns[0]
+        df=all_dfs[0]
+        for df_i in all_dfs[1:]:
+            df = pd.merge(left=df,right=df_i, left_on=main_col, right_on=main_col)
+        print(df)
+    else:
+         df = pd.read_csv(in_path,sep='\s+')
+    vector=df.to_numpy()
+    X=vector[:,1:]
+    names=vector[:,0]
+    return names,X
 
 #def showLDA():
 #    dataset=arff.readArffDataset("innovation_.arff")
@@ -72,4 +83,4 @@ def plot(names,data):
 #    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
 #    return cor1,cor2
     
-show_data("dcss.txt")
+show_data(["dcss.txt","dcss2.txt","dcss3.txt"])
