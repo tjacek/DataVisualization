@@ -1,17 +1,15 @@
 #import arff
 #import numpy as np
 import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
 from sklearn.decomposition import PCA
 #from numpy import linalg as LA
 #from sklearn.lda import LDA
 import pandas as pd 
 
 def show_data(in_path):
-    names,X = read_data(in_path)
-#    vector=df.to_numpy()
-#    X=vector[:,1:]
-#    names=vector[:,0]
+    df = read_data(in_path)
+    df = remove_outliners(df)
+    names,X= split_frames(df)
     pca = PCA(n_components=2)
     x_t=pca.fit(X).transform(X)
     print(pca.components_)
@@ -37,10 +35,26 @@ def read_data(in_path):
         print(df)
     else:
          df = pd.read_csv(in_path,sep='\s+')
+    return df
+
+def split_frames(df):
     vector=df.to_numpy()
     X=vector[:,1:]
     names=vector[:,0]
     return names,X
+
+def remove_outliners(df):
+    id_name=df.columns[0]
+    col_names=list(df.columns[1:])
+    extr={ col_i:(df[col_i].max(),df[col_i].min()) 
+        for col_i in col_names}
+    outliners=set()
+    for name_i,(max_i,min_i) in extr.items():
+        result=df[(df[name_i]==max_i)]  #df.query(f"{name_i}=={max_i}")
+        outliners.update( list(result[id_name]) )
+    for out_i in outliners:
+        df = df[df[id_name] != out_i]
+    return df
 
 #def showLDA():
 #    dataset=arff.readArffDataset("innovation_.arff")
