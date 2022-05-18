@@ -3,18 +3,14 @@
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 #from numpy import linalg as LA
-#from sklearn.lda import LDA
+from sklearn.manifold import MDS
 import pandas as pd 
 
 def show_data(in_path):
     df = read_data(in_path)
-    df = remove_outliners(df)
+#    df = remove_outliners(df)
     names,X= split_frames(df)
-    pca = PCA(n_components=2)
-    x_t=pca.fit(X).transform(X)
-    print(pca.components_)
-    print(pca.explained_variance_ratio_)
-    print(x_t)
+    x_t= mda_transform(X)
     plot(names,x_t)
 
 def plot(names,data):
@@ -50,23 +46,27 @@ def remove_outliners(df):
         for col_i in col_names}
     outliners=set()
     for name_i,(max_i,min_i) in extr.items():
-        result=df[(df[name_i]==max_i)]  #df.query(f"{name_i}=={max_i}")
+        result=df[(df[name_i]==max_i)]  
         outliners.update( list(result[id_name]) )
     for out_i in outliners:
         df = df[df[id_name] != out_i]
     return df
 
+def pca_transform(X,n_dim=2):
+    pca = PCA(n_components=n_dim)
+    x_t=pca.fit(X).transform(X)
+    print(pca.components_)
+    print(pca.explained_variance_ratio_)
+    return x_t
+
+def mda_transform(X):    
+    embedding = MDS(n_components=2)
+    return embedding.fit_transform(X)
+
 #def showLDA():
 #    dataset=arff.readArffDataset("innovation_.arff")
 #    x,y,z=apply_LDA(dataset.data,dataset.target)
 #    countryVisual3D(x,y,z,dataset.target)
-    
-#def countryVisual(x,y,cat):
-#    fig, ax = plt.subplots()
-#    c_p=[colors[i] for i in cat ]
-#    ax.scatter(x, y,c=c_p)
-#    for i,txt in enumerate(ccodes):
-#        ax.annotate(txt, (x[i],y[i]))
 
 #def countryVisual3D(x,y,z,cat):
 #    fig = plt.figure()
@@ -83,13 +83,7 @@ def remove_outliners(df):
 #    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
 #    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
 #    print(clf.scalings_)    
-#    return cor1,cor2#,cor3
-  
-#def apply_MDA(X):    
-#    x_t,n=reduction.mdaReduction(X,dim=2)
-#    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
-#    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
-#    return cor1,cor2  
+#    return cor1,cor2#,cor3  
     
 #def apply_tsne(X):    
 #    x_t,n=reduction.tsneReduction(X,dim=2)
