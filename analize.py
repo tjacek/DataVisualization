@@ -8,9 +8,10 @@ import pandas as pd
 
 def show_data(in_path):
     df = read_data(in_path)
-#    df = remove_outliners(df)
+#    df = remove_outliners(df,max_cond)
+    df = remove_outliners(df,min_cond)
     names,X= split_frames(df)
-    x_t= mda_transform(X)
+    x_t= pca_transform(X)
     plot(names,x_t)
 
 def plot(names,data):
@@ -39,18 +40,26 @@ def split_frames(df):
     names=vector[:,0]
     return names,X
 
-def remove_outliners(df):
+def remove_outliners(df,cond=None):
+    if(cond is None):
+        cond=max_cond
     id_name=df.columns[0]
     col_names=list(df.columns[1:])
-    extr={ col_i:(df[col_i].max(),df[col_i].min()) 
-        for col_i in col_names}
     outliners=set()
-    for name_i,(max_i,min_i) in extr.items():
-        result=df[(df[name_i]==max_i)]  
-        outliners.update( list(result[id_name]) )
+    for col_i in col_names:
+        result= df[cond(df[col_i])]
+        outliners.update(list(result[id_name]))
+        print(outliners)
+    print(outliners)
     for out_i in outliners:
         df = df[df[id_name] != out_i]
     return df
+
+def max_cond(df_col):
+    return (df_col  ==df_col.max()) 
+
+def min_cond(df_col):
+    return (df_col  ==df_col.min()) 
 
 def pca_transform(X,n_dim=2):
     pca = PCA(n_components=n_dim)
