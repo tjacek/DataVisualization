@@ -8,10 +8,9 @@ import pandas as pd
 
 def show_data(in_path):
     df = read_data(in_path)
-#    df = remove_outliners(df,max_cond)
-    df = remove_outliners(df,min_cond)
+    df = remove_outliners(df,std_cond)
     names,X= split_frames(df)
-    x_t= pca_transform(X)
+    x_t= mda_transform(X)
     plot(names,x_t)
 
 def plot(names,data):
@@ -56,10 +55,11 @@ def remove_outliners(df,cond=None):
     return df
 
 def max_cond(df_col):
-    return (df_col  ==df_col.max()) 
+    return (df_col==df_col.max()) + (df_col==df_col.min()) 
 
-def min_cond(df_col):
-    return (df_col  ==df_col.min()) 
+def std_cond(df_col):
+    col_std=df_col.std()
+    return df_col.abs()> 2*col_std
 
 def pca_transform(X,n_dim=2):
     pca = PCA(n_components=n_dim)
@@ -72,11 +72,6 @@ def mda_transform(X):
     embedding = MDS(n_components=2)
     return embedding.fit_transform(X)
 
-#def showLDA():
-#    dataset=arff.readArffDataset("innovation_.arff")
-#    x,y,z=apply_LDA(dataset.data,dataset.target)
-#    countryVisual3D(x,y,z,dataset.target)
-
 #def countryVisual3D(x,y,z,cat):
 #    fig = plt.figure()
 #    ax = fig.add_subplot(111, projection='3d')
@@ -85,15 +80,6 @@ def mda_transform(X):
 #    for i,txt in enumerate(ccodes):
 #        ax.annotate(txt, (x[i],y[i],z[i]))
 
-#def apply_LDA(X,Y):
-#    clf = LDA(n_components=2)
-#    clf.fit(X, Y)
-#    x_t=clf.transform(X)
-#    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
-#    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
-#    print(clf.scalings_)    
-#    return cor1,cor2#,cor3  
-    
 #def apply_tsne(X):    
 #    x_t,n=reduction.tsneReduction(X,dim=2)
 #    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
