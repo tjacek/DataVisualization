@@ -1,6 +1,6 @@
 import numpy as np
 import json
-import analize
+import analize,dataset
 
 class BinaryExtractor(object):
     def __init__(self,prop_ids):
@@ -11,8 +11,9 @@ class BinaryExtractor(object):
 
     def __call__(self,instance):
         if(type(instance)==dict):
-            return { key_i:self(value_i) 
-                for key_i,value_i in instance.items()}	
+            raw_dict={ key_i:self(value_i) 
+                for key_i,value_i in instance.items()}
+            return dataset.DataDict(raw_dict)	
         features=np.zeros((len(self),))
         for inst_i in instance:
             features[self.prop_ids[inst_i]]=1
@@ -34,6 +35,7 @@ def make_extractor(raw_dict):
 raw_dict= from_json('adom')
 extractor=make_extractor(raw_dict)
 binary_dict=extractor(raw_dict)
-names,X=analize.from_dict(binary_dict)
-x_t= analize.pca_transform(X)
-analize.plot(names,x_t)
+#names,X=analize.from_dict(binary_dict)
+#x_t= analize.pca_transform(X)
+binary_dict=binary_dict.transform(analize.pca_transform )
+analize.plot(binary_dict)

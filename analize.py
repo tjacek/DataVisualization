@@ -12,8 +12,8 @@ def show_data(in_path):
     plot(names,x_t)
 
 def plot(names,data=None):
-    if(type(names)==dict):
-        names,data=from_dict(names)
+    if(isinstance(names,dict)):
+        names,data=names.to_dataset()
     fig, ax = plt.subplots()
     ax.scatter(data[:,0],data[:,1])
     for i,txt in enumerate(names):
