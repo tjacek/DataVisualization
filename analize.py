@@ -1,8 +1,6 @@
-#import arff
-#import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-#from numpy import linalg as LA
 from sklearn.manifold import MDS
 import pandas as pd 
 
@@ -13,10 +11,13 @@ def show_data(in_path):
     x_t= mda_transform(X)
     plot(names,x_t)
 
-def plot(names,data):
+def plot(names,data=None):
+    if(type(names)==dict):
+        names,data=from_dict(names)
     fig, ax = plt.subplots()
     ax.scatter(data[:,0],data[:,1])
     for i,txt in enumerate(names):
+        print(txt)
         ax.annotate(txt,data[i])
     plt.show()
 
@@ -32,6 +33,12 @@ def read_data(in_path):
     else:
          df = pd.read_csv(in_path,sep='\s+')
     return df
+
+def from_dict(dict_i):
+    names=dict_i.keys()
+    X=[dict_i[name_i] 
+        for name_i in names]
+    return names,X
 
 def split_frames(df):
     vector=df.to_numpy()
@@ -85,5 +92,6 @@ def mda_transform(X):
 #    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
 #    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
 #    return cor1,cor2
-    
-show_data(["dcss.txt","dcss2.txt","dcss3.txt"])
+
+if __name__ == "__main__":
+    show_data(["dcss.txt","dcss2.txt","dcss3.txt"])

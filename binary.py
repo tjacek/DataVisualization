@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import analize
 
 class BinaryExtractor(object):
     def __init__(self,prop_ids):
@@ -32,4 +33,7 @@ def make_extractor(raw_dict):
 
 raw_dict= from_json('adom')
 extractor=make_extractor(raw_dict)
-print(extractor(raw_dict))
+binary_dict=extractor(raw_dict)
+names,X=analize.from_dict(binary_dict)
+x_t= analize.pca_transform(X)
+analize.plot(names,x_t)
