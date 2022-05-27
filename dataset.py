@@ -14,3 +14,13 @@ class DataDict(dict):
         names,X=self.to_dataset()
         X_t=trans_fun(X)
         return DataDict(zip(names,X_t))
+
+class Name(str):
+    def __new__(cls, p_string):
+        return str.__new__(cls, p_string)
+
+    def get_cat(self):
+        return int(self.split('_')[1])-1
+
+    def get_id(self):
+        return self.split('_')[0]
