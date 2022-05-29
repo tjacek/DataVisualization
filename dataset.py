@@ -4,6 +4,11 @@ class DataDict(dict):
     def __init__(self, arg=[]):
         super(DataDict, self).__init__(arg)
 
+    def __setitem__(self, key, value):
+        if(type(key)==str):
+            key=files.Name(key)
+        super(DataDict, self).__setitem__(key, value)
+
     def to_dataset(self):
         names=self.keys()
         X=np.array([self[name_i] 
