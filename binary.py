@@ -33,8 +33,5 @@ def binary_transform(dict_i:dict):
 
 binary_dict= dataset.read_class('adom',binary_transform)
 
-#raw_dict= from_json('adom/race')
-#extractor=make_extractor(raw_dict)
-#binary_dict=extractor(raw_dict)
 binary_dict=binary_dict.transform(analize.pca_transform )
 analize.plot(binary_dict)
