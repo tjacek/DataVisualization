@@ -13,7 +13,9 @@ def show_data(in_path):
 
 def plot(names,data=None):
     if(isinstance(names,dict)):
+#    if(data is None):
         names,data=names.to_dataset()
+#    raise Exception(data)
     fig, ax = plt.subplots()
     ax.scatter(data[:,0],data[:,1])
     for i,txt in enumerate(names):
@@ -94,4 +96,4 @@ def mda_transform(X):
 #    return cor1,cor2
 
 if __name__ == "__main__":
-    show_data(["dcss.txt","dcss2.txt","dcss3.txt"])
+    show_data("adom/class")

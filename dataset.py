@@ -1,3 +1,5 @@
+import os
+import json
 import numpy as np
 
 class DataDict(dict):
@@ -29,3 +31,21 @@ class Name(str):
 
     def get_id(self):
         return self.split('_')[0]
+
+def from_json(in_path):
+    with open(in_path) as json_file:
+        return json.load(json_file)
+
+def read_class(in_path,transform=None):
+    if(os.path.isdir(in_path)):
+        data_dict={}
+        for i,path_i in enumerate(os.listdir(in_path)):
+            dict_i=from_json(f"{in_path}/{path_i}")
+            for key_j,data_j in dict_i.items():
+                name_ij=f"{key_j}_{i}"
+                data_dict[name_ij]=data_j
+        if(transform):
+            data_dict=transform(data_dict)
+        return DataDict( data_dict)
+        
+    raise Exception(f"{in_path} is not directory" )

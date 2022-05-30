@@ -1,5 +1,4 @@
 import numpy as np
-import json
 import analize,dataset
 
 class BinaryExtractor(object):
@@ -18,10 +17,6 @@ class BinaryExtractor(object):
         for inst_i in instance:
             features[self.prop_ids[inst_i]]=1
         return features	
-
-def from_json(in_path):
-    with open(in_path) as json_file:
-        return json.load(json_file)
      
 def make_extractor(raw_dict):
     if(type(raw_dict)==str):
@@ -32,10 +27,14 @@ def make_extractor(raw_dict):
     prop_ids={prop_i:i  for i,prop_i in enumerate(list(all_properties))}
     return BinaryExtractor(prop_ids)
 
-raw_dict= from_json('adom')
-extractor=make_extractor(raw_dict)
-binary_dict=extractor(raw_dict)
-#names,X=analize.from_dict(binary_dict)
-#x_t= analize.pca_transform(X)
+def binary_transform(dict_i:dict):
+    extractor= make_extractor(dict_i)
+    return extractor(dict_i)
+
+binary_dict= dataset.read_class('adom',binary_transform)
+
+#raw_dict= from_json('adom/race')
+#extractor=make_extractor(raw_dict)
+#binary_dict=extractor(raw_dict)
 binary_dict=binary_dict.transform(analize.pca_transform )
 analize.plot(binary_dict)
