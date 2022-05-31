@@ -1,5 +1,6 @@
 import numpy as np
 import analize,dataset
+import plot
 
 class BinaryExtractor(object):
     def __init__(self,prop_ids):
@@ -34,4 +35,4 @@ def binary_transform(dict_i:dict):
 binary_dict= dataset.read_class('adom',binary_transform)
 
 binary_dict=binary_dict.transform(analize.pca_transform )
-analize.plot(binary_dict)
+plot.plot(binary_dict)

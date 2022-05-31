@@ -1,8 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS
 import pandas as pd 
+import plot
 
 def show_data(in_path):
     df = read_data(in_path)
@@ -10,34 +10,6 @@ def show_data(in_path):
     names,X= split_frames(df)
     x_t= mda_transform(X)
     plot(names,x_t)
-
-def plot(data_dict):
-    names,data,y=data_dict.to_dataset()
-    if(data_dict.supervised):
-        plot_supervised(names,data,y)
-    else:
-        plot_unsupervised(names,data)
-
-def plot_supervised(names,X,y):
-    fig, ax = plt.subplots()
-#    unique_cats= list(set(y))
-    ax.scatter(X[:,0],X[:,1])
-    for i,txt in enumerate(names):
-        print(txt)
-        ax.annotate(txt,X[i],color=plt.cm.tab20(2*y[i]))
-    plt.show()
-#    for i in enumerate(unique_cats):
-#        plt.text(X[, 0], X[i, 1],str("*"),
-#                   color=plt.cm.tab20( i),
-#                   fontdict={'weight': 'bold', 'size': 9})
-
-def plot_unsupervised(names,X):
-    fig, ax = plt.subplots()
-    ax.scatter(X[:,0],X[:,1])
-    for i,txt in enumerate(names):
-        print(txt)
-        ax.annotate(txt,X[i])
-    plt.show()
 
 def read_data(in_path):
     if(type(in_path)==list):
