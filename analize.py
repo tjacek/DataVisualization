@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.decomposition import PCA
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.manifold import MDS
 import pandas as pd 
 import plot
@@ -68,6 +69,14 @@ def pca_transform(X,n_dim=2):
 def mda_transform(X):    
     embedding = MDS(n_components=2)
     return embedding.fit_transform(X)
+
+def lda_transform(X,y):
+    clf = LinearDiscriminantAnalysis(n_components=2)
+    X_t=clf.fit(X,y).transform(X)
+    if(X_t.shape[-1]==1):
+        zero_col=np.zeros(X_t.shape)
+        X_t=np.concatenate([X_t,zero_col],axis=1)
+    return X_t
 
 #def countryVisual3D(x,y,z,cat):
 #    fig = plt.figure()

@@ -34,5 +34,5 @@ def binary_transform(dict_i:dict):
 
 binary_dict= dataset.read_class('adom',binary_transform)
 
-binary_dict=binary_dict.transform(analize.pca_transform )
+binary_dict=binary_dict.transform(analize.lda_transform )
 plot.plot(binary_dict)

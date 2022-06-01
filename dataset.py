@@ -1,4 +1,4 @@
-import os
+import os,inspect
 import json
 import numpy as np
 
@@ -23,7 +23,10 @@ class DataDict(dict):
 
     def transform(self,trans_fun):
         names,X,y=self.to_dataset()
-        X_t=trans_fun(X)
+        if(get_arity(trans_fun)>1 and self.supervised):
+            X_t=trans_fun(X,y)
+        else:
+            X_t=trans_fun(X)
         return DataDict(zip(names,X_t),supervised=self.supervised)
 
     def get_cat(self):
@@ -60,3 +63,9 @@ def read_class(in_path,transform=None):
         return DataDict( data_dict,supervised=True)
         
     raise Exception(f"{in_path} is not directory" )
+
+def get_arity(func):
+    desc=inspect.getargspec(func)
+    if(desc[-1] is None):
+        return len(desc[0])
+    return len(desc[0])-len(desc[-1])
