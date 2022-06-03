@@ -11,6 +11,9 @@ class DataDict(dict):
             key=files.Name(key)
         super(DataDict, self).__setitem__(key, value)
 
+    def names(self):
+        return self.keys()
+
     def to_dataset(self):
         names=self.keys()
         X=np.array([self[name_i] 
@@ -27,6 +30,9 @@ class DataDict(dict):
 
 class LabeledDataset(DataDict):
 
+    def names(self):
+        return [name_i.get_id() for name_i in self.keys()]
+
     def to_dataset(self):
         names,X,y=super(LabeledDataset,self).to_dataset()
         y=self.get_cat()
@@ -34,47 +40,15 @@ class LabeledDataset(DataDict):
 
     def transform(self,trans_fun):
         names,X,y=self.to_dataset()
-        X_t=trans_fun(X,y)
+        if(get_arity(trans_fun)>1):
+            X_t=trans_fun(X,y)
+        else:
+            X_t=trans_fun(X)
         return LabeledDataset(zip(names,X_t))
 
     def get_cat(self):
         return np.array([key_i.get_cat() 
                     for key_i in self.keys()])
-
-
-#class DataDict(dict):
-#    def __init__(self, arg=[],supervised=False):
-#        super(DataDict, self).__init__(arg)
-#        self.supervised=supervised
-
-#    def __setitem__(self, key, value):
-#        if(type(key)==str):
-#            key=files.Name(key)
-#        super(DataDict, self).__setitem__(key, value)
-
-#    def to_dataset(self):
-#        names=self.keys()
-#        X=np.array([self[name_i] 
-#            for name_i in names])
-#        if(self.supervised):
-#            y=self.get_cat()
-#            return names,X,y
-#        return names,X,None
-
-#    def transform(self,trans_fun):
-#        names,X,y=self.to_dataset()
-#        if(get_arity(trans_fun)>1 and self.supervised):
-#            X_t=trans_fun(X,y)
-#        else:
-#            X_t=trans_fun(X)
-#        return DataDict(zip(names,X_t),supervised=self.supervised)
-
-#    def get_cat(self):
-#        if(self.supervised):
-#            return np.array([key_i.get_cat() 
-#                    for key_i in self.keys()])
-#        else:
-#            return []
 
 class Name(str):
     def __new__(cls, p_string):

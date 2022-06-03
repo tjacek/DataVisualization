@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
+import dataset
 
 def plot(data_dict):
     names,data,y=data_dict.to_dataset()
-    if(data_dict.supervised):
+    names=data_dict.names()
+    if(type(data_dict)==dataset.LabeledDataset):
         plot_supervised(names,data,y)
     else:
         plot_unsupervised(names,data)
