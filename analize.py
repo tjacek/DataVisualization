@@ -76,15 +76,7 @@ def lda_transform(X,y):
     if(X_t.shape[-1]==1):
         zero_col=np.zeros(X_t.shape)
         X_t=np.concatenate([X_t,zero_col],axis=1)
-    return X_t
-
-#def countryVisual3D(x,y,z,cat):
-#    fig = plt.figure()
-#    ax = fig.add_subplot(111, projection='3d')
-#    c_p=[colors[i] for i in cat ]
-#    ax.scatter(x,y,z,c=c_p)
-#    for i,txt in enumerate(ccodes):
-#        ax.annotate(txt, (x[i],y[i],z[i]))
+    return X_t,clf
 
 #def apply_tsne(X):    
 #    x_t,n=reduction.tsneReduction(X,dim=2)
@@ -93,4 +85,4 @@ def lda_transform(X,y):
 #    return cor1,cor2
 
 if __name__ == "__main__":
-    show_data("adom/class")
+    lda_analize("adom")

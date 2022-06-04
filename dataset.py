@@ -34,9 +34,9 @@ class LabeledDataset(DataDict):
         return [name_i.get_id() for name_i in self.keys()]
 
     def to_dataset(self):
-        names,X,y=super(LabeledDataset,self).to_dataset()
+        keys,X,y=super(LabeledDataset,self).to_dataset()
         y=self.get_cat()
-        return names,X,y
+        return keys,X,y
 
     def transform(self,trans_fun):
         names,X,y=self.to_dataset()
