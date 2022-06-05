@@ -62,9 +62,9 @@ def std_cond(df_col):
 def pca_transform(X,n_dim=2):
     pca = PCA(n_components=n_dim)
     x_t=pca.fit(X).transform(X)
-    print(pca.components_)
-    print(pca.explained_variance_ratio_)
-    return x_t
+#    print(pca.components_)
+#    print(pca.explained_variance_ratio_)
+    return x_t,pca
 
 def mda_transform(X):    
     embedding = MDS(n_components=2)
