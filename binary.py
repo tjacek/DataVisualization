@@ -46,7 +46,7 @@ def lda_analize(data_dict):
         prop_i= extractor.ids_prop[i]
         print(f"{prop_i},{cof_i}")
 
-def pca_analize(data_dict,n_eigen=2):
+def pca_analize(data_dict,n_eigen=2,ordered=True):
     if(type(data_dict)==str):
         data_dict= dataset.read_class(data_dict)
     extractor= make_extractor(data_dict)
@@ -55,11 +55,13 @@ def pca_analize(data_dict,n_eigen=2):
     pca=analize.pca_transform(X,n_dim=n_eigen)[1]
     for i in range(n_eigen):
         print(pca.explained_variance_ratio_[i])
-        for j,cof_j in enumerate(pca.components_[0]):
+        indexes=  np.argsort(  pca.components_[i])
+        for j in indexes:
             prop_j= extractor.ids_prop[j]
+            cof_j= pca.components_[i][j]
             print(f"{prop_j}:{cof_j}")
 
-pca_analize('adom')
+pca_analize('adom/class')
 
 #binary_dict= dataset.read_class('adom',binary_transform)
 #binary_dict=binary_dict.transform(analize.pca_transform )
