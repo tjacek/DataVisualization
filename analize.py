@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.manifold import MDS
+from sklearn.manifold import TSNE
 import pandas as pd 
 import plot
 
@@ -62,8 +63,6 @@ def std_cond(df_col):
 def pca_transform(X,n_dim=2):
     pca = PCA(n_components=n_dim)
     x_t=pca.fit(X).transform(X)
-#    print(pca.components_)
-#    print(pca.explained_variance_ratio_)
     return x_t,pca
 
 def mda_transform(X):    
@@ -78,11 +77,10 @@ def lda_transform(X,y):
         X_t=np.concatenate([X_t,zero_col],axis=1)
     return X_t,clf
 
-#def apply_tsne(X):    
-#    x_t,n=reduction.tsneReduction(X,dim=2)
-#    cor1=[x_t[i][0] for i in xrange(len(x_t)) ]
-#    cor2=[x_t[i][1] for i in xrange(len(x_t)) ]
-#    return cor1,cor2
+def tsne_transform(X,n_components=2):    
+    tsne = TSNE(n_components=n_components, init='pca', random_state=0)
+    X_t=tsne.fit_transform(X)
+    return X_t,None
 
 if __name__ == "__main__":
     lda_analize("adom")

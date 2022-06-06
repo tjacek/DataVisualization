@@ -22,7 +22,7 @@ class DataDict(dict):
 
     def transform(self,trans_fun):
         names,X,y=self.to_dataset()
-        X_t=trans_fun(X)
+        X_t=trans_fun(X)[0]
         return DataDict(zip(names,X_t))
 
     def get_cat(self):
@@ -75,7 +75,11 @@ def read_class(in_path,transform=None):
         if(transform):
             data_dict=transform(data_dict)
         return LabeledDataset( data_dict)
-    raise Exception(f"{in_path} is not directory" )
+    else:
+        data_dict=from_json(in_path)
+        if(transform):
+            data_dict=transform(data_dict)
+        return DataDict(data_dict)
 
 def get_arity(func):
     desc=inspect.getargspec(func)
