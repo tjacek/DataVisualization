@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+#from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+import reduction
 import analize,dataset
 import plot
 
@@ -41,7 +42,7 @@ def lda_analize(data_dict):
     extractor= make_extractor(data_dict)
     data_dict=extractor(data_dict)
     keys,X,y= data_dict.to_dataset()
-    clf=analize.lda_transform(X,y)[1]
+    clf=reduction.lda_transform(X,y)[1]
     for i,cof_i in enumerate(clf.coef_[0]):
         prop_i= extractor.ids_prop[i]
         print(f"{prop_i},{cof_i}")
@@ -52,7 +53,7 @@ def pca_analize(data_dict,n_eigen=2):
     extractor= make_extractor(data_dict)
     data_dict=extractor(data_dict)
     keys,X,y= data_dict.to_dataset()
-    pca=analize.pca_transform(X,n_dim=n_eigen)[1]
+    pca=reduction.pca_transform(X,n_dim=n_eigen)[1]
     for i in range(n_eigen):
         print("***************")
         print(pca.explained_variance_ratio_[i])
@@ -62,8 +63,8 @@ def pca_analize(data_dict,n_eigen=2):
             cof_j= pca.components_[i][j]
             print(f"{prop_j}:{cof_j}")
 
-#pca_analize('adom/class')
+#lda_analize('adom/class')
 
 binary_dict= dataset.read_class('adom/class',binary_transform)
-binary_dict=binary_dict.transform(analize.tsne_transform )
+binary_dict=binary_dict.transform(reduction.ensemble_transform )
 plot.plot(binary_dict)
