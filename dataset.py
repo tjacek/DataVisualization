@@ -8,7 +8,7 @@ class DataDict(dict):
 
     def __setitem__(self, key, value):
         if(type(key)==str):
-            key=files.Name(key)
+            key=Name(key)
         super(DataDict, self).__setitem__(key, value)
 
     def names(self):
@@ -63,6 +63,13 @@ class Name(str):
 def from_json(in_path):
     with open(in_path) as json_file:
         return json.load(json_file)
+
+def from_df(df):
+    data_dict=DataDict()
+    for line_i in df.to_records():
+        name_i=line_i[1]
+        data_dict[name_i] = list(line_i)[2:]
+    return data_dict
 
 def read_class(in_path,transform=None):
     if(os.path.isdir(in_path)):
