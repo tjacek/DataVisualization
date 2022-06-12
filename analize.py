@@ -1,18 +1,22 @@
 import numpy as np
-
+import os.path
 import pandas as pd 
 import plot
 
-def show_data(in_path):
+def show_data(in_path,sep='\s+'):
     df = read_data(in_path)
-    df = remove_outliners(df,std_cond)
+#    df = remove_outliners(df,std_cond)
     names,X= split_frames(df)
-    x_t= mda_transform(X)
+    x_t= pca_transform(X)
     plot(names,x_t)
 
-def read_data(in_path):
+def read_data(in_path,sep='\s+'):
+    if(os.path.isdir(in_path)):
+        in_path=[f"{in_path}/{file_i}" 
+            for file_i in os.listdir(in_path)
+               if(file_i.endswith(".csv"))]
     if(type(in_path)==list):
-        all_dfs=[ pd.read_csv(path_i,sep='\s+') 
+        all_dfs=[ pd.read_csv(path_i,sep=sep) 
                 for path_i in in_path]
         main_col=all_dfs[0].columns[0]
         df=all_dfs[0]
@@ -20,7 +24,7 @@ def read_data(in_path):
             df = pd.merge(left=df,right=df_i, left_on=main_col, right_on=main_col)
         print(df)
     else:
-         df = pd.read_csv(in_path,sep='\s+')
+         df = pd.read_csv(in_path,sep=sep)
     return df
 
 def from_dict(dict_i):
@@ -58,4 +62,4 @@ def std_cond(df_col):
     return df_col.abs()> 2*col_std
 
 if __name__ == "__main__":
-    lda_analize("adom")
+    show_data("desc",sep=',')
