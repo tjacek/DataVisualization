@@ -7,12 +7,11 @@ def show_data(in_path,sep='\s+'):
     df = read_data(in_path,sep)
 #    df = remove_outliners(df,std_cond)
     data=dataset.from_df(df)
-#    names,X= split_frames(df)
     x_t=data.transform(reduction.pca_transform)
     plot.plot(x_t)
 
 def read_data(in_path,sep='\s+'):
-    if(os.path.isdir(in_path)):
+    if(type(in_path)==str and os.path.isdir(in_path)):
         in_path=[f"{in_path}/{file_i}" 
             for file_i in os.listdir(in_path)
                if(file_i.endswith(".csv"))]
@@ -20,7 +19,6 @@ def read_data(in_path,sep='\s+'):
         all_dfs=[ pd.read_csv(path_i,sep=sep) 
                 for path_i in in_path]
         main_col=all_dfs[0].columns[0]
-#        raise Exception(main_col)
         df=all_dfs[0]
         for df_i in all_dfs[1:]:
             df = pd.merge(left=df,right=df_i, left_on=main_col, right_on=main_col)
@@ -64,4 +62,4 @@ def std_cond(df_col):
     return df_col.abs()> 2*col_std
 
 if __name__ == "__main__":
-    show_data("desc",sep=',')
+    show_data(["desc/desc.csv","desc/stats.csv"],sep=',')
