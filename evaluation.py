@@ -4,12 +4,13 @@ Created on Tue Mar 31 18:04:50 2015
 
 @author: user
 """
-import arff
-import sklearn.cross_validation as cv
-import sklearn.grid_search as gs
+#import sklearn.cross_validation as cv
+#import sklearn.grid_search as gs
+from sklearn.model_selection import cross_val_score
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
+import utils
 
 class OptimizedSVM(object):
     def __init__(self):
@@ -70,30 +71,17 @@ def evalOnTestData(X_test,y_test,clf):
     y_true, y_pred = y_test, clf.predict(X_test)
     print(classification_report(y_true, y_pred))
 
-def randomEval(dataset):
-    X=dataset.data
-    y=dataset.target
-    X_train, X_test, y_train, y_test = cv.train_test_split(
-                                       X, y, test_size=0.5, random_state=0)
-    svm_opt=OptimizedRandomForest()
-    clf=svm_opt.gridSearch(X_train,y_train)
-    
-    evalOnTrainData(clf)
-    evalOnTestData(X_test,y_test,clf)
+def random_eval(dataset,n_split=5):
+    X,y=dataset.X,dataset.y
+    clf=RandomForestClassifier()
+    scores = cross_val_score(clf, 
+                             X, y, 
+                             cv=n_split, 
+                             scoring='accuracy')#'f1_macro')
+    print(scores)
 
-def determisticEval(trainName,testName):
-    train=arff.readArffDataset(trainName)
-    test=arff.readArffDataset(testName)
-    svm_opt=OptimizedSVM()
-    clf=svm_opt.gridSearch(train.data,train.target)  
-    evalOnTrainData(clf)
-    evalOnTestData(test.data,test.target,clf)
 
-prefix=    "C:/Users/TP/Desktop/doktoranckie/"
-name= prefix+"linearHist.arff" 
-dataset=arff.readArffDataset(name)
-randomEval(dataset)
-#prefix =  "C:/Users/user/Desktop/kwolek/DataVisualisation/data/"
-#name= prefix+"3_12_8.arff"   
-#dataset=arff.readArffDataset(name)
-#evalSVM(dataset)
+dataset=utils.read_csv("uci/cleveland")
+random_eval(dataset)
+pca_data= utils.get_pca(dataset.X,dataset.y)
+random_eval(pca_data)

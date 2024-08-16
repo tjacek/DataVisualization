@@ -23,7 +23,8 @@ def get_pca(X,y=None):
     pca = PCA()#n_components=2)
     pca.fit(X)
     print(pca.explained_variance_ratio_)
-
+    return Dataset(X=pca.transform(X),
+                y=y)
 if __name__ == '__main__':
     data=read_csv("uci/cleveland")
     for i in range(data.n_cats()):
