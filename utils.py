@@ -12,6 +12,9 @@ class Dataset(object):
     def get_cat(self,i):
     	return self.X[self.y==i]
 		
+    def __call__(self,fun):
+        return Dataset(X=fun(self.X),
+                       y=self.y)
 
 def read_csv(in_path:str):
     df=pd.read_csv(in_path)
