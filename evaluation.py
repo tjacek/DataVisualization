@@ -1,12 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Mar 31 18:04:50 2015
-
-@author: user
-"""
-#import sklearn.cross_validation as cv
-#import sklearn.grid_search as gs
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
@@ -74,14 +66,19 @@ def evalOnTestData(X_test,y_test,clf):
 def random_eval(dataset,n_split=5):
     X,y=dataset.X,dataset.y
     clf=RandomForestClassifier()
-    scores = cross_val_score(clf, 
-                             X, y, 
-                             cv=n_split, 
-                             scoring='accuracy')#'f1_macro')
-    print(scores)
-
+    rskf=RepeatedStratifiedKFold(n_repeats=1, 
+                                 n_splits=10, 
+                                 random_state=0)
+    for train_index,test_index in rskf.split(X,y):
+        X_train=X[train_index]
+        y_train=y[train_index]
+        X_test=X[test_index]
+        y_test=y[test_index]
+        clf.fit(X_train,y_train)
+        y_pred= clf.predict(X_test)
+        print(classification_report(y_test, y_pred))
 
 dataset=utils.read_csv("uci/cleveland")
 random_eval(dataset)
 pca_data= utils.get_pca(dataset.X,dataset.y)
-random_eval(pca_data)
+#random_eval(pca_data)
