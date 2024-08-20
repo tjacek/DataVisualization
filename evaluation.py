@@ -63,22 +63,25 @@ def evalOnTestData(X_test,y_test,clf):
     y_true, y_pred = y_test, clf.predict(X_test)
     print(classification_report(y_true, y_pred))
 
-def random_eval(dataset,n_split=5):
+def random_eval(data_dict,n_split=5):
+    dataset=list(data_dict.values())[0]
     X,y=dataset.X,dataset.y
-    clf=RandomForestClassifier()
+    
     rskf=RepeatedStratifiedKFold(n_repeats=1, 
                                  n_splits=10, 
                                  random_state=0)
-    for train_index,test_index in rskf.split(X,y):
-        X_train=X[train_index]
-        y_train=y[train_index]
-        X_test=X[test_index]
-        y_test=y[test_index]
-        clf.fit(X_train,y_train)
-        y_pred= clf.predict(X_test)
-        print(classification_report(y_test, y_pred))
+    
+    for name_i,data_i in data_dict.items():
+        for train_index,test_index in rskf.split(X,y):
+            clf=RandomForestClassifier()
+            y_pred,y_test=data_i.eval(train_index=train_index,
+                                      test_index=test_index,
+                                      clf=clf)
+            print(name_i)
+            print(classification_report(y_test, y_pred))
 
 dataset=utils.read_csv("uci/cleveland")
-random_eval(dataset)
 pca_data= utils.get_pca(dataset.X,dataset.y)
+data_dict={"base":dataset,"pca":dataset}
+random_eval(data_dict)
 #random_eval(pca_data)
