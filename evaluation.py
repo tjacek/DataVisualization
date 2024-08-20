@@ -1,6 +1,8 @@
+import numpy as np
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
 import utils
 
@@ -63,22 +65,27 @@ def evalOnTestData(X_test,y_test,clf):
     y_true, y_pred = y_test, clf.predict(X_test)
     print(classification_report(y_true, y_pred))
 
-def random_eval(data_dict,n_split=5):
+def random_eval(data_dict,n_split=5,metric=None):
     dataset=list(data_dict.values())[0]
+    if(metric is None):
+        metric=accuracy_score
     X,y=dataset.X,dataset.y
-    
     rskf=RepeatedStratifiedKFold(n_repeats=1, 
                                  n_splits=10, 
                                  random_state=0)
-    
+    results={}
     for name_i,data_i in data_dict.items():
+        results[name_i]=[]
         for train_index,test_index in rskf.split(X,y):
             clf=RandomForestClassifier()
             y_pred,y_test=data_i.eval(train_index=train_index,
                                       test_index=test_index,
                                       clf=clf)
-            print(name_i)
-            print(classification_report(y_test, y_pred))
+            results[name_i].append((y_pred,y_test))
+    for name_i,result_i in results.items():
+         metric_i=[metric(true_j,pred_j) for true_j,pred_j in result_i]
+         metric_i=np.mean(metric_i)
+         print(f"{name_i}:{metric_i}")
 
 dataset=utils.read_csv("uci/cleveland")
 pca_data= utils.get_pca(dataset.X,dataset.y)
