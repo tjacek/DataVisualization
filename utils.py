@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.decomposition import PCA
+from functools import wraps
 
 class Dataset(object):
     def __init__(self,X,y):
@@ -31,12 +32,38 @@ def read_csv(in_path:str):
     X,y=raw[:,:-1],raw[:,-1]
     return Dataset(X,y)
 
+def make_dir(path):
+    if(not os.path.isdir(path)):
+        os.mkdir(path)
+
 def get_pca(X,y=None):
     pca = PCA()#n_components=2)
     pca.fit(X)
     print(pca.explained_variance_ratio_)
     return Dataset(X=pca.transform(X),
                 y=y)
+
+
+class DirFun(object):
+    def __init__(self,dir_args=None):
+        if(dir_args is None):
+            dir_args=[("in_path",0)]
+        self.dir_args=dir_args
+
+    def __call__(self, fun):
+        @wraps(fun)
+        def decor_fun(*args, **kwargs):
+            in_path=self.get_input(*args, **kwargs)
+            for in_i in top_files(in_path):
+                fun(*args, **kwargs)
+        return decor_fun
+        
+    def get_input(self,*args, **kwargs):
+        name,i=self.dir_args[0]
+        if(name in kwargs):
+            return kwargs[name]
+        return args[0]
+
 if __name__ == '__main__':
     data=read_csv("uci/cleveland")
     for i in range(data.n_cats()):
