@@ -54,6 +54,8 @@ class DirFun(object):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
             in_path=self.get_input(*args, **kwargs)
+            if( os.path.isdir() ):
+                return fun(*args, **kwargs)
             result_dict={}
             for in_i in top_files(in_path):
                 id_i=in_i.split('/')[-1]
