@@ -70,6 +70,14 @@ def get_score(score_name:str):
         return balanced_accuracy_score
     return accuracy_score
 
+@utils.DirFun()
+def experiment(in_path):
+    print(in_path)
+    dataset=utils.read_csv(in_path)
+    pca_data= utils.get_pca(dataset.X,dataset.y)
+    data_dict={"base":dataset,"pca":pca_data}
+    random_eval(data_dict)
+
 def random_eval(data_dict,n_split=5,score=None):
     dataset=list(data_dict.values())[0]
     metric=get_score(score)
@@ -91,10 +99,9 @@ def random_eval(data_dict,n_split=5,score=None):
          metric_i=np.mean(metric_i)
          print(f"{name_i}:{metric_i}")
 
+experiment("uci")
 
-
-dataset=utils.read_csv("uci/cleveland")
-pca_data= utils.get_pca(dataset.X,dataset.y)
-data_dict={"base":dataset,"pca":dataset}
-random_eval(data_dict)
-#random_eval(pca_data)
+#dataset=utils.read_csv("uci/cleveland")
+#pca_data= utils.get_pca(dataset.X,dataset.y)
+#data_dict={"base":dataset,"pca":dataset}
+#random_eval(data_dict)

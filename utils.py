@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.decomposition import PCA
+import os.path
 from functools import wraps
 
 class Dataset(object):
@@ -36,6 +37,15 @@ def make_dir(path):
     if(not os.path.isdir(path)):
         os.mkdir(path)
 
+def top_files(path):
+    if(type(path)==str):
+        paths=[ f'{path}/{file_i}' for file_i in os.listdir(path)]
+    else:
+        paths=path
+    paths=sorted(paths)
+    return paths
+
+
 def get_pca(X,y=None):
     pca = PCA()#n_components=2)
     pca.fit(X)
@@ -53,12 +63,14 @@ class DirFun(object):
     def __call__(self, fun):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
+            args=list(args)
             in_path=self.get_input(*args, **kwargs)
-            if( os.path.isdir() ):
+            if(not os.path.isdir(in_path) ):
                 return fun(*args, **kwargs)
             result_dict={}
             for in_i in top_files(in_path):
                 id_i=in_i.split('/')[-1]
+                args[0]=in_i
                 result_i=fun(*args, **kwargs)
                 result_dict[id_i]=result_i
             return result_dict
@@ -69,6 +81,7 @@ class DirFun(object):
         if(name in kwargs):
             return kwargs[name]
         return args[0]
+
 
 if __name__ == '__main__':
     data=read_csv("uci/cleveland")
