@@ -59,7 +59,8 @@ class Experiment(object):
             data_dict={"base":dataset}
         else:
             data_dict=self.features(in_path)  
-        return self.eval(data_dict)
+        result=self.eval(data_dict)
+        result.score()
 
     def eval(self,data_dict):
         dataset=list(data_dict.values())[0]
@@ -68,7 +69,7 @@ class Experiment(object):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                      n_splits=self.n_splits, 
                                      random_state=0)
-        results={}
+        results=Result()
         for name_i,data_i in data_dict.items():
             results[name_i]=[]
             for train_index,test_index in rskf.split(X,y):
@@ -76,11 +77,22 @@ class Experiment(object):
                 y_pred,y_test=data_i.eval(train_index=train_index,
                                           test_index=test_index,
                                           clf=clf)
-                results[name_i].append((y_pred,y_test))
-        for name_i,result_i in results.items():
-            metric_i=[self.score(true_j,pred_j) for true_j,pred_j in result_i]
+                results.pairs_dict[name_i].append((y_pred,y_test))
+        return results
+
+class Result(object):
+    def __init__(self):
+        self.pairs_dict={}
+
+    def __setitem__(self, key, value):
+        self.pairs_dict[key]=value
+
+    def score(self,score_type="acc"):
+        score=get_score(score_type)
+        for name_i,result_i in self.pairs_dict.items():
+            metric_i=[score(true_j,pred_j) for true_j,pred_j in result_i]
             metric_i=np.mean(metric_i)
-            print(f"{name_i}:{metric_i}")
+            print(f"{name_i}:{metric_i:.4f}")        
 
 def pca_features(in_path):
     dataset=utils.read_csv(in_path)
@@ -113,7 +125,7 @@ def get_score(score_name:str):
         return balanced_accuracy_score
     return accuracy_score
 
-exp=Experiment()
+exp=Experiment(features=pca_features)
 exp("uci/cleveland")
 
 #dataset=utils.read_csv("uci/cleveland")
