@@ -44,6 +44,49 @@ class OptimizedAdaBoost(object):
         clf.fit(X_train,y_train)
         return clf
 
+class Experiment(object):
+    def __init__(self,features=None,score="acc",n_splits=10,n_repeats=1):
+        if(type(score)==str):
+            score=get_score(score)
+        self.features=features
+        self.score=score
+        self.n_splits=n_splits
+        self.n_repeats=n_repeats
+    
+    def __call__(self,in_path):
+        if(self.features is None):
+            dataset=utils.read_csv(in_path)
+            data_dict={"base":dataset}
+        else:
+            data_dict=self.features(in_path)  
+        return self.eval(data_dict)
+
+    def eval(self,data_dict):
+        dataset=list(data_dict.values())[0]
+    
+        X,y=dataset.X,dataset.y
+        rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
+                                     n_splits=self.n_splits, 
+                                     random_state=0)
+        results={}
+        for name_i,data_i in data_dict.items():
+            results[name_i]=[]
+            for train_index,test_index in rskf.split(X,y):
+                clf=RandomForestClassifier()
+                y_pred,y_test=data_i.eval(train_index=train_index,
+                                          test_index=test_index,
+                                          clf=clf)
+                results[name_i].append((y_pred,y_test))
+        for name_i,result_i in results.items():
+            metric_i=[self.score(true_j,pred_j) for true_j,pred_j in result_i]
+            metric_i=np.mean(metric_i)
+            print(f"{name_i}:{metric_i}")
+
+def pca_features(in_path):
+    dataset=utils.read_csv(in_path)
+    pca_data= utils.get_pca(dataset.X,dataset.y)
+    return {"base":dataset,"pca":pca_data}
+
 def evalOnTrainData(clf):
     print("Best parameters set found on development set:")
     print()
@@ -70,36 +113,8 @@ def get_score(score_name:str):
         return balanced_accuracy_score
     return accuracy_score
 
-@utils.DirFun()
-def experiment(in_path):
-    print(in_path)
-    dataset=utils.read_csv(in_path)
-    pca_data= utils.get_pca(dataset.X,dataset.y)
-    data_dict={"base":dataset,"pca":pca_data}
-    random_eval(data_dict)
-
-def random_eval(data_dict,n_split=5,score=None):
-    dataset=list(data_dict.values())[0]
-    metric=get_score(score)
-    X,y=dataset.X,dataset.y
-    rskf=RepeatedStratifiedKFold(n_repeats=1, 
-                                 n_splits=10, 
-                                 random_state=0)
-    results={}
-    for name_i,data_i in data_dict.items():
-        results[name_i]=[]
-        for train_index,test_index in rskf.split(X,y):
-            clf=RandomForestClassifier()
-            y_pred,y_test=data_i.eval(train_index=train_index,
-                                      test_index=test_index,
-                                      clf=clf)
-            results[name_i].append((y_pred,y_test))
-    for name_i,result_i in results.items():
-         metric_i=[metric(true_j,pred_j) for true_j,pred_j in result_i]
-         metric_i=np.mean(metric_i)
-         print(f"{name_i}:{metric_i}")
-
-experiment("uci")
+exp=Experiment()
+exp("uci/cleveland")
 
 #dataset=utils.read_csv("uci/cleveland")
 #pca_data= utils.get_pca(dataset.X,dataset.y)
