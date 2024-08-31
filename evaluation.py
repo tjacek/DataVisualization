@@ -45,10 +45,13 @@ class OptimizedAdaBoost(object):
         return clf
 
 class Experiment(object):
-    def __init__(self,features=None,score="acc",n_splits=10,n_repeats=1):
+    def __init__(self,features=None,clfs=None,score="acc",n_splits=10,n_repeats=1):
+        if(clfs is None):
+            clfs={"RF":RandomForestClassifier()}
         if(type(score)==str):
             score=get_score(score)
         self.features=features
+        self.clfs=clfs
         self.score=score
         self.n_splits=n_splits
         self.n_repeats=n_repeats
@@ -71,13 +74,13 @@ class Experiment(object):
                                      random_state=0)
         results=Result()
         for name_i,data_i in data_dict.items():
-            results[name_i]=[]
+            results[name_i]={name_j:[]  for name_j in self.clfs}
             for train_index,test_index in rskf.split(X,y):
-                clf=RandomForestClassifier()
-                y_pred,y_test=data_i.eval(train_index=train_index,
-                                          test_index=test_index,
-                                          clf=clf)
-                results.pairs_dict[name_i].append((y_pred,y_test))
+                for name_j,clf_j in self.clfs.items():
+                    y_pred,y_test=data_i.eval(train_index=train_index,
+                                              test_index=test_index,
+                                              clf=clf_j)
+                    results.pairs_dict[name_i][name_j].append((y_pred,y_test))
         return results
 
 class Result(object):
@@ -88,11 +91,13 @@ class Result(object):
         self.pairs_dict[key]=value
 
     def score(self,score_type="acc"):
+#        raise Exception(self.pairs_dict)
         score=get_score(score_type)
         for name_i,result_i in self.pairs_dict.items():
-            metric_i=[score(true_j,pred_j) for true_j,pred_j in result_i]
-            metric_i=np.mean(metric_i)
-            print(f"{name_i}:{metric_i:.4f}")        
+            for name_j,clf_j in result_i.items():
+                metric_i=[score(true_j,pred_j) for true_j,pred_j in clf_j]
+                metric_i=np.mean(metric_i)
+                print(f"{name_i},{name_j}:{metric_i:.4f}")        
 
 def pca_features(in_path):
     dataset=utils.read_csv(in_path)
