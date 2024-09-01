@@ -4,6 +4,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
+import pandas as pd
 import utils
 
 class OptimizedSVM(object):
@@ -91,13 +92,21 @@ class Result(object):
         self.pairs_dict[key]=value
 
     def score(self,score_type="acc"):
-#        raise Exception(self.pairs_dict)
         score=get_score(score_type)
+        score_dict={}
         for name_i,result_i in self.pairs_dict.items():
             for name_j,clf_j in result_i.items():
                 metric_i=[score(true_j,pred_j) for true_j,pred_j in clf_j]
                 metric_i=np.mean(metric_i)
-                print(f"{name_i},{name_j}:{metric_i:.4f}")        
+                print(f"{name_i},{name_j}:{metric_i:.4f}")
+                score_dict[f"{name_i}_{name_j}"]=metric_i        
+        return score_dict
+
+    def to_df(metrics):
+        if(type(metrics)==str):
+            metrics=[metrics]
+        for metric_i in metrics:
+            self.score(metric_i)
 
 def pca_features(in_path):
     dataset=utils.read_csv(in_path)
