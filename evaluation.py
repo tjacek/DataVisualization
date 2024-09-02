@@ -64,7 +64,8 @@ class Experiment(object):
         else:
             data_dict=self.features(in_path)  
         result=self.eval(data_dict)
-        result.score()
+#        result.score()
+        return result
 
     def eval(self,data_dict):
         dataset=list(data_dict.values())[0]
@@ -102,11 +103,19 @@ class Result(object):
                 score_dict[f"{name_i}_{name_j}"]=metric_i        
         return score_dict
 
-    def to_df(metrics):
+    def to_df(self,metrics):
         if(type(metrics)==str):
             metrics=[metrics]
+        all_dicts=[]
         for metric_i in metrics:
-            self.score(metric_i)
+            all_dicts.append(self.score(metric_i))
+        lines=[]
+        for name_i in all_dicts[0].keys():
+            lines.append(name_i.split("_"))
+            for dict_j in all_dicts:
+                lines[-1].append(dict_j[name_i])
+        df=pd.DataFrame.from_records(lines)
+        print(df) 
 
 def pca_features(in_path):
     dataset=utils.read_csv(in_path)
@@ -140,7 +149,9 @@ def get_score(score_name:str):
     return accuracy_score
 
 exp=Experiment(features=pca_features)
-exp("uci/cleveland")
+result=exp("uci/cleveland")
+result.to_df(['acc'])
+
 
 #dataset=utils.read_csv("uci/cleveland")
 #pca_data= utils.get_pca(dataset.X,dataset.y)
