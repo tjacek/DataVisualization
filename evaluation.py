@@ -5,7 +5,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
 import pandas as pd
-import utils
+import dataset,utils
 
 class OptimizedSVM(object):
     def __init__(self):
@@ -64,7 +64,6 @@ class Experiment(object):
         else:
             data_dict=self.features(in_path)  
         result=self.eval(data_dict)
-#        result.score()
         return result
 
     def eval(self,data_dict):
@@ -118,9 +117,9 @@ class Result(object):
         print(df) 
 
 def pca_features(in_path):
-    dataset=utils.read_csv(in_path)
-    pca_data= utils.get_pca(dataset.X,dataset.y)
-    return {"base":dataset,"pca":pca_data}
+    data=dataset.read_csv(in_path)
+    pca_data= dataset.get_pca(data.X,data.y)
+    return {"base":data,"pca":pca_data}
 
 def evalOnTrainData(clf):
     print("Best parameters set found on development set:")
@@ -151,9 +150,3 @@ def get_score(score_name:str):
 exp=Experiment(features=pca_features)
 result=exp("uci/cleveland")
 result.to_df(['acc'])
-
-
-#dataset=utils.read_csv("uci/cleveland")
-#pca_data= utils.get_pca(dataset.X,dataset.y)
-#data_dict={"base":dataset,"pca":dataset}
-#random_eval(data_dict)

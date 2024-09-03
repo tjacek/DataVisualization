@@ -1,95 +1,45 @@
-import os,inspect
-import json
-import numpy as np
+import pandas as pd
+from sklearn.decomposition import PCA
 
-class DataDict(dict):
-    def __init__(self, arg=[]):
-        super(DataDict, self).__init__(arg)
+class Dataset(object):
+    def __init__(self,X,y):
+        self.X=X
+        self.y = y
 
-    def __setitem__(self, key, value):
-        if(type(key)==str):
-            key=Name(key)
-        super(DataDict, self).__setitem__(key, value)
+    def n_cats(self):
+        return int(max(self.y))
 
-    def names(self):
-        return self.keys()
+    def get_cat(self,i):
+    	return self.X[self.y==i]
+		
+    def __call__(self,fun):
+        return Dataset(X=fun(self.X),
+                       y=self.y)
 
-    def to_dataset(self):
-        names=self.keys()
-        X=np.array([self[name_i] 
-            for name_i in names])
-        return names,X,None
+    def eval(self,train_index,test_index,clf):
+        X_train=self.X[train_index]
+        y_train=self.y[train_index]
+        X_test=self.X[test_index]
+        y_test=self.y[test_index]
+        clf.fit(X_train,y_train)
+        y_pred=clf.predict(X_test)
+        return y_pred,y_test
 
-    def transform(self,trans_fun):
-        names,X,y=self.to_dataset()
-        X_t=trans_fun(X)[0]
-        return DataDict(zip(names,X_t))
+def read_csv(in_path:str):
+    df=pd.read_csv(in_path)
+    raw=df.to_numpy()
+    X,y=raw[:,:-1],raw[:,-1]
+    return Dataset(X,y)
 
-    def get_cat(self):
-        return []
+def get_pca(X,y=None):
+    pca = PCA()#n_components=2)
+    pca.fit(X)
+    print(pca.explained_variance_ratio_)
+    return Dataset(X=pca.transform(X),
+                y=y)
 
-class LabeledDataset(DataDict):
-
-    def names(self):
-        return [name_i.get_id() for name_i in self.keys()]
-
-    def to_dataset(self):
-        keys,X,y=super(LabeledDataset,self).to_dataset()
-        y=self.get_cat()
-        return keys,X,y
-
-    def transform(self,trans_fun):
-        names,X,y=self.to_dataset()
-        if(get_arity(trans_fun)>1):
-            X_t=trans_fun(X,y)
-        else:
-            X_t=trans_fun(X)
-        return LabeledDataset(zip(names,X_t))
-
-    def get_cat(self):
-        return np.array([key_i.get_cat() 
-                    for key_i in self.keys()])
-
-class Name(str):
-    def __new__(cls, p_string):
-        return str.__new__(cls, p_string)
-
-    def get_cat(self):
-        return int(self.split('_')[1])
-
-    def get_id(self):
-        return self.split('_')[0]
-
-def from_json(in_path):
-    with open(in_path) as json_file:
-        return json.load(json_file)
-
-def from_df(df):
-    data_dict=DataDict()
-    for line_i in df.to_records():
-        name_i=line_i[1]
-        data_dict[name_i] = list(line_i)[2:]
-    return data_dict
-
-def read_class(in_path,transform=None):
-    if(os.path.isdir(in_path)):
-        data_dict={}
-        for i,path_i in enumerate(os.listdir(in_path)):
-            dict_i=from_json(f"{in_path}/{path_i}")
-            for key_j,data_j in dict_i.items():
-                name_ij=Name(f"{key_j}_{i}")
-                data_dict[name_ij]=data_j
-        if(transform):
-            data_dict=transform(data_dict)
-        return LabeledDataset( data_dict)
-    else:
-        data_dict=from_json(in_path)
-        if(transform):
-            data_dict=transform(data_dict)
-        return DataDict(data_dict)
-
-def get_arity(func):
-    desc=inspect.getargspec(func)
-    if(desc[-1] is None):
-        return len(desc[0])
-    return len(desc[0])-len(desc[-1])
+if __name__ == '__main__':
+    data=read_csv("uci/cleveland")
+    for i in range(data.n_cats()):
+        x_i=data.get_cat(i)
+        get_pca(x_i)
