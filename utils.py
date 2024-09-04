@@ -13,14 +13,6 @@ def top_files(path):
     paths=sorted(paths)
     return paths
 
-
-def get_pca(X,y=None):
-    pca = PCA()#n_components=2)
-    pca.fit(X)
-    print(pca.explained_variance_ratio_)
-    return Dataset(X=pca.transform(X),
-                y=y)
-
 class DirFun(object):
     def __init__(self,dir_args=None):
         if(dir_args is None):

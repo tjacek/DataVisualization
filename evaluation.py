@@ -7,44 +7,6 @@ from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
 import pandas as pd
 import dataset,utils
 
-class OptimizedSVM(object):
-    def __init__(self):
-        rbf={'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],'C': [1, 10, 100, 1000]}
-        linear={'kernel': ['linear'], 'C': [1, 10, 100, 1000]}
-        self.params=[rbf,linear]
-        self.SVC=SVC(C=1)
-        
-    def gridSearch(self,X_train,y_train,metric='accuracy'):
-        clf = gs.GridSearchCV(self.SVC,self.params, cv=5,scoring=metric)
-        clf.fit(X_train,y_train)
-        return clf
-
-class OptimizedRandomForest(object):
-    def __init__(self):
-        params={}
-        params['n_estimators']=[50,100,300,400,500] 
-        #params['criterion']=['gini','entropy']
-        self.params=[params]
-        self.rf= RandomForestClassifier(n_estimators=10)
-    
-    def gridSearch(self,X_train,y_train,metric='accuracy'):
-        clf = gs.GridSearchCV(self.rf,self.params, cv=5,scoring=metric)
-        clf.fit(X_train,y_train)
-        return clf
-
-class OptimizedAdaBoost(object):
-    def __init__(self):
-        params={}
-        params['n_estimators']=[50,100,150,200,300] 
-        params['learning_rate']=[0.5,1.0,1.5,2.0]
-        self.params=[params]
-        self.ab=AdaBoostClassifier(n_estimators=100)
-
-    def gridSearch(self,X_train,y_train,metric='accuracy'):
-        clf = gs.GridSearchCV(self.ab,self.params, cv=5,scoring=metric)
-        clf.fit(X_train,y_train)
-        return clf
-
 class Experiment(object):
     def __init__(self,features=None,clfs=None,score="acc",n_splits=10,n_repeats=1):
         if(clfs is None):
@@ -102,6 +64,9 @@ class Result(object):
                 score_dict[f"{name_i}_{name_j}"]=metric_i        
         return score_dict
 
+    def report(self):
+        classification_report(y_true, y_pred)  
+
     def to_df(self,metrics):
         if(type(metrics)==str):
             metrics=[metrics]
@@ -114,33 +79,12 @@ class Result(object):
             for dict_j in all_dicts:
                 lines[-1].append(dict_j[name_i])
         df=pd.DataFrame.from_records(lines)
-        print(df) 
+        return df
 
 def pca_features(in_path):
     data=dataset.read_csv(in_path)
     pca_data= dataset.get_pca(data.X,data.y)
     return {"base":data,"pca":pca_data}
-
-def evalOnTrainData(clf):
-    print("Best parameters set found on development set:")
-    print()
-    print(clf.best_params_)
-    print()
-    print("Grid scores on development set:")
-    print()
-    for params, mean_score, scores in clf.grid_scores_:
-        print("%0.3f (+/-%0.03f) for %r"
-              % (mean_score, scores.std() * 2, params))
-    print()
-
-def evalOnTestData(X_test,y_test,clf):
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    y_true, y_pred = y_test, clf.predict(X_test)
-    print(classification_report(y_true, y_pred))
 
 def get_score(score_name:str):
     if(score_name=="balanced"):
