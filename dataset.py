@@ -6,6 +6,9 @@ class Dataset(object):
         self.X=X
         self.y = y
 
+    def __len__(self):
+        return len(self.y)
+
     def n_cats(self):
         return int(max(self.y))
 
