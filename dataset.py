@@ -9,6 +9,9 @@ class Dataset(object):
     def __len__(self):
         return len(self.y)
 
+    def dim(self):
+        return self.X.shape[1]
+
     def n_cats(self):
         return int(max(self.y))
 
@@ -35,6 +38,8 @@ def read_csv(in_path:str):
     return Dataset(X,y)
 
 def get_pca(X,y=None):
+    if(type(X)==Dataset):
+        X,y=X.X,X.y
     pca = PCA()#n_components=2)
     pca.fit(X)
     print(pca.explained_variance_ratio_)
