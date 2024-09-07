@@ -4,8 +4,10 @@ import dataset
 def plot(data):
     if(data.dim()!=2):
         raise Exception(f"dim of data:{data.dim()}")
-#    ax.scatter(data.X[:,0],data.X[:,1])
-#    plt.show()
+    else:
+        fig, ax = plt.subplots()
+        ax.scatter(data.X[:,0],data.X[:,1])
+        plt.show()
 
 #def plot(data_dict):
 #    names,data,y=data_dict.to_dataset()
@@ -34,5 +36,5 @@ def plot_unsupervised(names,X):
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
-    data=dataset.get_pca(data)
+    data=dataset.get_pca(data,n_components=2)
     plot(data)

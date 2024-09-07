@@ -37,12 +37,15 @@ def read_csv(in_path:str):
     X,y=raw[:,:-1],raw[:,-1]
     return Dataset(X,y)
 
-def get_pca(X,y=None):
+def get_pca(X,y=None,
+            n_components=None,
+            verbose=False):
     if(type(X)==Dataset):
         X,y=X.X,X.y
-    pca = PCA()#n_components=2)
+    pca = PCA(n_components=n_components)
     pca.fit(X)
-    print(pca.explained_variance_ratio_)
+    if(verbose):
+        print(pca.explained_variance_ratio_)
     return Dataset(X=pca.transform(X),
                 y=y)
 
