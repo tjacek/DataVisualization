@@ -20,7 +20,6 @@ def compute_density(data,dim,cat=None,show=False,n_steps=100):
     x_order-=a_min
     log_dens= kde.score_samples(x_order.reshape(-1, 1))
     dens=np.exp(log_dens)
-#    dens=log_dens
     if(show):
         fig, ax = plt.subplots()
         ax.plot(x_order,np.exp(log_dens))
@@ -37,7 +36,13 @@ def kl_matrix(data,cat_i=0):
         for dens_j in all_dens:
             kl_ij=np.mean(kl_div(dens_i,dens_j))
             matrix[-1].append(kl_ij)
+    show_matrix(matrix)
+
+def show_matrix(matrix):
     matrix=np.array(matrix)
+    matrix[np.isnan(matrix)]=0.0
+    matrix[matrix==np.inf]=0
+#    matrix[matrix > 1E308]=0
     print(np.around(matrix,decimals=2))
     plt.figure(figsize = (10,7))
     sns.heatmap(matrix, annot=True)
