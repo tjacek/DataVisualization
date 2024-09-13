@@ -26,7 +26,7 @@ def compute_density(data,dim,cat=None,show=False,n_steps=100):
         plt.show()
     return dens
 
-def kl_matrix(data,cat_i=0):
+def dim_matrix(data,cat_i=0):
     n_dims= data.dim()
     matrix=[]
     all_dens=[ compute_density(data,dim_j,cat_i) 
@@ -38,11 +38,22 @@ def kl_matrix(data,cat_i=0):
             matrix[-1].append(kl_ij)
     show_matrix(matrix)
 
+def cat_matrix(data,dim_i=0):
+    matrix=[]
+    all_dens=[ compute_density(data,dim_i,cat_j) 
+        for cat_j in range(data.n_cats())]
+    for dens_i in all_dens:
+        matrix.append([])
+        for dens_j in all_dens:
+            kl_ij=np.mean(kl_div(dens_i,dens_j))
+            matrix[-1].append(kl_ij)
+    show_matrix(matrix)
+
 def show_matrix(matrix):
     matrix=np.array(matrix)
     matrix[np.isnan(matrix)]=0.0
     matrix[matrix==np.inf]=0
-#    matrix[matrix > 1E308]=0
+    matrix/= np.sum(matrix)
     print(np.around(matrix,decimals=2))
     plt.figure(figsize = (10,7))
     sns.heatmap(matrix, annot=True)
@@ -50,4 +61,4 @@ def show_matrix(matrix):
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
-    kl_matrix(data)
+    cat_matrix(data,dim_i=2)
