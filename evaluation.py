@@ -86,11 +86,19 @@ def pca_features(in_path):
     pca_data= dataset.get_pca(data.X,data.y)
     return {"base":data,"pca":pca_data}
 
+
+def antr_features(in_path):
+    data=dataset.read_csv(in_path)
+    import autoencoder
+    antr_data= autoencoder.AthroFeatures()(data)
+    return {"base":data,"antr":antr_data}
+
 def get_score(score_name:str):
     if(score_name=="balanced"):
         return balanced_accuracy_score
     return accuracy_score
 
-exp=Experiment(features=pca_features)
-result=exp("uci/cleveland")
-result.to_df(['acc'])
+if __name__ == '__main__':
+    exp=Experiment(features=antr_features)
+    result=exp("uci/cleveland")
+    result.to_df(['acc'])
