@@ -6,15 +6,7 @@ from sklearn.manifold import TSNE
 from sklearn import manifold
 from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import StandardScaler
-
-def pca_transform(X,n_dim=2):
-    scaler=StandardScaler().fit(X)
-    X=scaler.transform(X)
-    pca = PCA(n_components=n_dim)
-    x_t=pca.fit(X).transform(X)
-    print(pca.components_)
-    print(pca.explained_variance_ratio_)
-    return x_t,pca
+import dataset
 
 def mda_transform(X):    
     embedding = MDS(n_components=2)
@@ -38,10 +30,12 @@ def lle_transform(X,dim=2,n_neighbors=5):
                                       method='standard')
     return clf.fit_transform(X),clf
 
-def spectral_transform(X,n_components=2):
+def spectral_transform(data,n_components=2):
     embedder = manifold.SpectralEmbedding(n_components=n_components, 
         random_state=0,eigen_solver="arpack")
-    return embedder.fit_transform(X),embedder
+    new_X=embedder.fit_transform(data.X),embedder
+    return dataset.Dataset(X=new_X,
+                           y=data.y)
 
 def ensemble_transform(X,n_components=2):
     hasher = sklearn.ensemble.RandomTreesEmbedding(n_estimators=200, random_state=0,
@@ -50,3 +44,7 @@ def ensemble_transform(X,n_components=2):
     pca = TruncatedSVD(n_components=n_components)
     X_reduced = pca.fit_transform(X_transformed)
     return X_reduced,None
+
+if __name__ == '__main__':
+    data=dataset.read_csv("uci/cleveland")
+    spectral_transform(data,n_components=2)
