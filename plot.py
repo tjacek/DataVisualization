@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import dataset
+import dataset,reduction
 
 def plot(data):
     if(data.dim()!=2):
@@ -16,30 +16,9 @@ def plot(data):
                     color=plt.cm.tab20(color_i))
     plt.show()
 
-#def plot(data_dict):
-#    names,data,y=data_dict.to_dataset()
-#    names=data_dict.names()
-#    if(type(data_dict)==dataset.LabeledDataset):
-#        plot_supervised(names,data,y)
-#    else:
-#        plot_unsupervised(names,data)
-
-def plot_supervised(names,X,y):
-    fig, ax = plt.subplots()
-    ax.scatter(X[:,0],X[:,1])
-    for i,txt in enumerate(names):
-        print(txt)
-        ax.annotate(txt,data.X[i],color=plt.cm.tab20(2*y[i]))
-    plt.show()
-
-def plot_unsupervised(names,X):
-    fig, ax = plt.subplots()
-    ax.scatter(X[:,0],X[:,1])
-    for i,txt in enumerate(names):
-        print(txt)
-        ax.annotate(txt,X[i])
-    plt.show()
-
+def reduce_plots(in_path,methods=None):
+    if(methods is None):
+        methods={ "spectral":reduction.spectral_transform}
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
