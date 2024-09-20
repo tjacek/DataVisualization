@@ -33,7 +33,7 @@ def lle_transform(X,dim=2,n_neighbors=5):
 def spectral_transform(data,n_components=2):
     embedder = manifold.SpectralEmbedding(n_components=n_components, 
         random_state=0,eigen_solver="arpack")
-    new_X=embedder.fit_transform(data.X),embedder
+    new_X=embedder.fit_transform(data.X)
     return dataset.Dataset(X=new_X,
                            y=data.y)
 

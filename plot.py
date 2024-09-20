@@ -16,11 +16,17 @@ def plot(data):
                     color=plt.cm.tab20(color_i))
     plt.show()
 
-def reduce_plots(in_path,methods=None):
-    if(methods is None):
-        methods={ "spectral":reduction.spectral_transform}
+def reduce_plots(in_path,transform=None):
+    data=dataset.read_csv(in_path)
+    if(transform is None):
+        transform={ "pca":dataset.get_pca,
+                  "spectral":reduction.spectral_transform}
+    for name_i,transform_i in transform.items():
+        data_i=transform_i(data,n_components=2)
+        plot(data_i)
 
 if __name__ == '__main__':
-    data=dataset.read_csv("uci/cleveland")
-    data=dataset.get_pca(data,n_components=2)
-    plot(data)
+    reduce_plots("uci/cleveland",transform=None)
+#    data=dataset.read_csv("uci/cleveland")
+#    data=dataset.get_pca(data,n_components=2)
+#    plot(data)
