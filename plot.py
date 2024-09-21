@@ -21,11 +21,16 @@ def reduce_plots(in_path,out_path,transform=None):
     data=dataset.read_csv(in_path)
     if(transform is None):
         transform={ "pca":dataset.get_pca,
-                  "spectral":reduction.spectral_transform}
+                    "spectral":reduction.spectral_transform,
+                    "lda":reduction.lda_transform,
+                    "lle":reduction.lle_transform,
+                    "mda":reduction.mda_transform,
+                    "tsne":reduction.tsne_transform}
     utils.make_dir(out_path)
     for name_i,transform_i in transform.items():
         data_i=transform_i(data,n_components=2)
-        plot(data_i)
+        plot(data_i,
+             show=False)
         plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
