@@ -3,7 +3,8 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.svm import SVC
 from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
-from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 import pandas as pd
 import dataset,utils
 
@@ -21,8 +22,8 @@ class Experiment(object):
     
     def __call__(self,in_path):
         if(self.features is None):
-            dataset=utils.read_csv(in_path)
-            data_dict={"base":dataset}
+            data=dataset.read_csv(in_path)
+            data_dict={"base":data}
         else:
             data_dict=self.features(in_path)  
         result=self.eval(data_dict)
@@ -98,7 +99,13 @@ def get_score(score_name:str):
         return balanced_accuracy_score
     return accuracy_score
 
+def linear_exp():
+    return Experiment(features=None,
+                      clfs={"RF":RandomForestClassifier(),
+                            "LR":LogisticRegression(solver='liblinear')})
+
 if __name__ == '__main__':
-    exp=Experiment(features=antr_features)
-    result=exp("uci/cleveland")
+    exp=linear_exp()#Experiment(features=antr_features)
+    exp=utils.DirFun(exp)
+    result=exp("uci")
     result.to_df(['acc'])
