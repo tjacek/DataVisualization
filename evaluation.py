@@ -21,6 +21,7 @@ class Experiment(object):
         self.n_repeats=n_repeats
     
     def __call__(self,in_path):
+        print(in_path)
         if(self.features is None):
             data=dataset.read_csv(in_path)
             data_dict={"base":data}
@@ -65,10 +66,10 @@ class Result(object):
                 score_dict[f"{name_i}_{name_j}"]=metric_i        
         return score_dict
 
-    def report(self):
-        classification_report(y_true, y_pred)  
+#    def report(self):
+#        classification_report(y_true, y_pred)  
 
-    def to_df(self,metrics):
+    def to_df(self,metrics,raw_lines=False):
         if(type(metrics)==str):
             metrics=[metrics]
         all_dicts=[]
@@ -79,7 +80,21 @@ class Result(object):
             lines.append(name_i.split("_"))
             for dict_j in all_dicts:
                 lines[-1].append(dict_j[name_i])
+        if(raw_lines):
+            return lines
         df=pd.DataFrame.from_records(lines)
+        return df
+
+class ResultDict(dict):
+    def __init__(self, arg=[]):
+        super(ResultDict, self).__init__(arg)
+
+    def to_df(self,metrics):
+        all_lines=[]
+        for name_i,result_i in self.items():
+            lines=result_i.to_df(metrics,raw_lines=True)
+            all_lines+=[ [name_i]+line_j for line_j in lines]
+        df=pd.DataFrame.from_records(all_lines)
         return df
 
 def pca_features(in_path):
@@ -106,6 +121,7 @@ def linear_exp():
 
 if __name__ == '__main__':
     exp=linear_exp()#Experiment(features=antr_features)
-    exp=utils.DirFun(exp)
-    result=exp("uci")
-    result.to_df(['acc'])
+    exp=utils.DirFun()(exp)
+    result=ResultDict(exp("uci"))
+    df=result.to_df(['acc'])
+    print(df)
