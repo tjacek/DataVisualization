@@ -1,10 +1,11 @@
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn import preprocessing
 
 class Dataset(object):
-    def __init__(self,X,y):
+    def __init__(self,X,y=None):
         self.X=X
-        self.y = y
+        self.y=y
 
     def __len__(self):
         return len(self.y)
@@ -31,10 +32,14 @@ class Dataset(object):
         y_pred=clf.predict(X_test)
         return y_pred,y_test
 
+    def labeled(self):
+        return not (self.y is None)
+
 def read_csv(in_path:str):
     df=pd.read_csv(in_path)
     raw=df.to_numpy()
     X,y=raw[:,:-1],raw[:,-1]
+    X= preprocessing.RobustScaler().fit_transform(X)
     return Dataset(X,y)
 
 def get_pca(X,y=None,
