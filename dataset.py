@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
 
@@ -34,6 +35,12 @@ class Dataset(object):
 
     def labeled(self):
         return not (self.y is None)
+
+    def min(self):
+        return np.amin(self.X,axis=0)
+
+    def max(self):
+        return np.amax(self.X,axis=0)
 
 def read_csv(in_path:str):
     df=pd.read_csv(in_path)
