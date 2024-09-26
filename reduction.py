@@ -53,6 +53,16 @@ def ensemble_transform(X,n_components=2):
     X_reduced = pca.fit_transform(X_transformed)
     return X_reduced,None
 
+def pca_transform(data,
+            n_components=None,
+            verbose=False):
+    pca = PCA(n_components=n_components)
+    pca.fit(data.X)
+    if(verbose):
+        print(pca.explained_variance_ratio_)
+    return Dataset(X=pca.transform(X),
+                   y=data.y)
+
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
     spectral_transform(data,n_components=2)

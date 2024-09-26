@@ -5,8 +5,6 @@ import dataset,reduction,utils
 def plot(data,show=True):
     if(data.dim()!=2):
         raise Exception(f"dim of data:{data.dim()}")    
-#    fig, ax = plt.subplots()
-#    ax.scatter(data.X[:,0],data.X[:,1])
     cat2col= np.arange(20)
     np.random.shuffle(cat2col)
     plt.figure()
@@ -21,19 +19,13 @@ def plot(data,show=True):
     x_max,y_max=data.max()
     plt.xlim((x_min,x_max))
     plt.ylim((y_min,y_max))
-
-#    if(data.labeled()):
-#       for i,y_i in enumerate(data.y):
-#           color_i=cat2col[int(y_i)]
-#           ax.annotate(y_i,data.X[i],
-#                    color=plt.cm.tab20(color_i))
     if(show):
         plt.show()
 
 def reduce_plots(in_path,out_path,transform=None):
     data=dataset.read_csv(in_path)
     if(transform is None):
-        transform={ "pca":dataset.get_pca,
+        transform={ "pca":reduction.spectral_transform,
                     "spectral":reduction.spectral_transform,
                     "lda":reduction.lda_transform,
                     "lle":reduction.lle_transform,
