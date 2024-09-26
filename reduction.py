@@ -45,13 +45,15 @@ def tsne_transform(data,n_components=2):
     return dataset.Dataset(X=X_t,
                            y=data.y)
 
-def ensemble_transform(X,n_components=2):
-    hasher = sklearn.ensemble.RandomTreesEmbedding(n_estimators=200, random_state=0,
-                                       max_depth=5)
-    X_transformed = hasher.fit_transform(X)
+def ensemble_transform(data,n_components=2):
+    hasher = sklearn.ensemble.RandomTreesEmbedding(n_estimators=200, 
+                                                   random_state=0,
+                                                   max_depth=5)
+    X_transformed = hasher.fit_transform(data.X)
     pca = TruncatedSVD(n_components=n_components)
     X_reduced = pca.fit_transform(X_transformed)
-    return X_reduced,None
+    return dataset.Dataset(X=X_reduced,
+                           y=data.y)
 
 def pca_transform(data,
             n_components=None,
