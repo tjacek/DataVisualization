@@ -20,19 +20,18 @@ class Experiment(object):
         self.n_splits=n_splits
         self.n_repeats=n_repeats
     
-    def __call__(self,in_path):
+    def __call__(self,in_path,verbose=True):
         print(in_path)
         if(self.features is None):
             data=dataset.read_csv(in_path)
             data_dict={"base":data}
         else:
             data_dict=self.features(in_path)  
-        result=self.eval(data_dict)
+        result=self.eval(data_dict,verbose)
         return result
 
-    def eval(self,data_dict):
+    def eval(self,data_dict,verbose=True):
         dataset=list(data_dict.values())[0]
-    
         X,y=dataset.X,dataset.y
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                      n_splits=self.n_splits, 
@@ -42,6 +41,8 @@ class Experiment(object):
             results[name_i]={name_j:[]  for name_j in self.clfs}
             for train_index,test_index in rskf.split(X,y):
                 for name_j,clf_j in self.clfs.items():
+                    if(verbose):
+                        print(f"{name_i},{name_j}")
                     y_pred,y_test=data_i.eval(train_index=train_index,
                                               test_index=test_index,
                                               clf=clf_j)
@@ -102,7 +103,6 @@ def pca_features(in_path):
     pca_data= dataset.get_pca(data.X,data.y)
     return {"base":data,"pca":pca_data}
 
-
 def antr_features(in_path):
     data=dataset.read_csv(in_path)
     import autoencoder
@@ -115,7 +115,7 @@ def get_score(score_name:str):
     return accuracy_score
 
 def linear_exp():
-    return Experiment(features=None,
+    return Experiment(features=antr_features,
                       clfs={"RF":RandomForestClassifier(),
                             "LR":LogisticRegression(solver='liblinear')})
 

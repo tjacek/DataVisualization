@@ -49,18 +49,6 @@ def read_csv(in_path:str):
     X= preprocessing.RobustScaler().fit_transform(X)
     return Dataset(X,y)
 
-def get_pca(X,y=None,
-            n_components=None,
-            verbose=False):
-    if(type(X)==Dataset):
-        X,y=X.X,X.y
-    pca = PCA(n_components=n_components)
-    pca.fit(X)
-    if(verbose):
-        print(pca.explained_variance_ratio_)
-    return Dataset(X=pca.transform(X),
-                y=y)
-
 if __name__ == '__main__':
     data=read_csv("uci/cleveland")
     for i in range(data.n_cats()):

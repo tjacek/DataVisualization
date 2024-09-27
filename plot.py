@@ -22,15 +22,17 @@ def plot(data,show=True):
     if(show):
         plt.show()
 
-def reduce_plots(in_path,out_path,transform=None):
-    data=dataset.read_csv(in_path)
+def reduce_plots(data,out_path,transform=None):
+    if(type(data)==str):
+        data=dataset.read_csv(in_path)
     if(transform is None):
         transform={ "pca":reduction.spectral_transform,
                     "spectral":reduction.spectral_transform,
                     "lda":reduction.lda_transform,
                     "lle":reduction.lle_transform,
                     "mda":reduction.mda_transform,
-                    "tsne":reduction.tsne_transform}
+                    "tsne":reduction.tsne_transform,
+                    "ensemble":reduction.ensemble_transform}
     utils.make_dir(out_path)
     for name_i,transform_i in transform.items():
         data_i=transform_i(data,n_components=2)
@@ -39,7 +41,6 @@ def reduce_plots(in_path,out_path,transform=None):
         plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
-    reduce_plots("uci/cleveland","test",transform=None)
-#    data=dataset.read_csv("uci/cleveland")
-#    data=dataset.get_pca(data,n_components=2)
-#    plot(data)
+    import evaluation
+    data=evaluation.antr_features("uci/cleveland")["antr"]
+    reduce_plots(data,"test",transform=None)    
