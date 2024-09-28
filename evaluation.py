@@ -1,7 +1,6 @@
 import numpy as np
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.svm import SVC
-from sklearn.metrics import classification_report
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -65,10 +64,7 @@ class Result(object):
                 metric_i=np.mean(metric_i)
                 print(f"{name_i},{name_j}:{metric_i:.4f}")
                 score_dict[f"{name_i}_{name_j}"]=metric_i        
-        return score_dict
-
-#    def report(self):
-#        classification_report(y_true, y_pred)  
+        return score_dict      
 
     def to_df(self,metrics,raw_lines=False):
         if(type(metrics)==str):
