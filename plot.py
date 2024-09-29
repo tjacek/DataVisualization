@@ -41,6 +41,10 @@ def reduce_plots(data,out_path,transform=None):
         plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
-    import evaluation
-    data=evaluation.antr_features("uci/cleveland")["antr"]
+#    import evaluation
+#    data=evaluation.antr_features("uci/cleveland")["antr"]
+    import deep
+    data=dataset.read_csv("uci/cleveland")
+    cnn=deep.train(data,report=False)
+    data=cnn(data)
     reduce_plots(data,"test",transform=None)    

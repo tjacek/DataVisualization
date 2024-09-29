@@ -9,7 +9,17 @@ import dataset
 class CNN(object):
     def __init__(self,model,params):
         self.model=model
+        self.extractor=None
         self.params=params
+
+    def __call__(self,data):
+#        self.train(data)
+        output= self.model.get_layer("layer_2").output 
+        extractor=Model(inputs=self.model.input,
+                        outputs=output)
+        new_X=extractor.predict(data.X)
+        return dataset.Dataset(X=new_X,
+                               y=data.y)
 
     def fit(self,X,y):
         y=tf.one_hot(y,
@@ -35,12 +45,12 @@ def train(data,n_epochs=100,report=True):
                         shuffle=True, 
                         random_state=None)
     train,test= list(skf.split(data.X,data.y))[0]
-    cnn=data.eval(train_index=train,
+    pred=data.eval(train_index=train,
                   test_index=test,
                   clf=cnn,
                   fit_only=not report)
     if(report):
-        y_pred,y_true=cnn
+        y_pred,y_true=pred
         print(classification_report(y_true, y_pred))
     return cnn
 
@@ -49,7 +59,7 @@ def make_nn(params):
     x=Dense(2*params['dims'],
               activation='relu',
               name=f"layer_1")(input_layer)
-    x=Dense(params['dims'],
+    x=Dense(params['dims']-1,
             activation='relu',
             name=f"layer_2")(x)
     x=Dense(params['n_cats'], 
