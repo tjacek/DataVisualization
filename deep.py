@@ -26,13 +26,14 @@ class CNN(object):
                      depth=self.params['n_cats'])
         self.model.fit(x=X,
                        y=y,
-                       epochs=self.params['n_epochs'])
+                       epochs=self.params['n_epochs'],
+                       callbacks=get_callback())
 
     def predict(self,X):
         pred= self.model.predict(X)
         return np.argmax(pred,axis=1)
 
-def train(data,n_epochs=100,report=True):
+def train(data,n_epochs=1000,report=True):
     params={"n_cats":data.n_cats(),
             'dims':data.dim(),
             'n_epochs':n_epochs}
@@ -45,13 +46,11 @@ def train(data,n_epochs=100,report=True):
                         shuffle=True, 
                         random_state=None)
     train,test= list(skf.split(data.X,data.y))[0]
-    pred=data.eval(train_index=train,
-                  test_index=test,
-                  clf=cnn,
-                  fit_only=not report)
+    (X_train,y_train),(X_test,y_test)=data.split(train,test)
+    cnn.fit(X_train,y_train)
+    y_pred=cnn.predict(X_test)
     if(report):
-        y_pred,y_true=pred
-        print(classification_report(y_true, y_pred))
+        print(classification_report(y_test, y_pred))
     return cnn
 
 def make_nn(params):
@@ -59,7 +58,7 @@ def make_nn(params):
     x=Dense(2*params['dims'],
               activation='relu',
               name=f"layer_1")(input_layer)
-    x=Dense(params['dims']-1,
+    x=Dense(params['dims'],
             activation='relu',
             name=f"layer_2")(x)
     x=Dense(params['n_cats'], 
@@ -67,6 +66,11 @@ def make_nn(params):
             name='out')(x)
     return Model(inputs=input_layer, 
                  outputs=x)
+
+def get_callback():
+    return tf.keras.callbacks.EarlyStopping(monitor='val_loss', 
+                                            patience=5)
+
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")

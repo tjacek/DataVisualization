@@ -24,15 +24,16 @@ class Dataset(object):
         return Dataset(X=fun(self.X),
                        y=self.y)
 
-    def eval(self,train_index,test_index,clf,fit_only=False):
-#        raise Exception(train_index)
+    def split(self,train_index,test_index):
         X_train=self.X[train_index]
         y_train=self.y[train_index]
         X_test=self.X[test_index]
         y_test=self.y[test_index]
+        return (X_train,y_train),(X_test,y_test)        
+
+    def eval(self,train_index,test_index,clf):
+        (X_train,y_train),(X_test,y_test)=self.split(train_index,test_index)
         clf.fit(X_train,y_train)
-        if(fit_only):
-            return clf
         y_pred=clf.predict(X_test)
         return y_pred,y_test
 
