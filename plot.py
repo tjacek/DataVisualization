@@ -26,7 +26,7 @@ def reduce_plots(data,out_path,transform=None):
     if(type(data)==str):
         data=dataset.read_csv(in_path)
     if(transform is None):
-        transform={ "pca":reduction.spectral_transform,
+        transform={ "pca":reduction.pca_transform,
                     "spectral":reduction.spectral_transform,
                     "lda":reduction.lda_transform,
                     "lle":reduction.lle_transform,
@@ -41,10 +41,10 @@ def reduce_plots(data,out_path,transform=None):
         plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
-#    import evaluation
+    import evaluation
 #    data=evaluation.antr_features("uci/cleveland")["antr"]
     import deep
     data=dataset.read_csv("uci/cleveland")
     cnn=deep.train(data,report=False)
     data=cnn(data)
-    reduce_plots(data,"test",transform=None)    
+    reduce_plots(data,"nn_plot",transform=None)    

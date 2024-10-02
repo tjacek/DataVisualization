@@ -60,10 +60,11 @@ def pca_transform(data,
             verbose=False):
     pca = PCA(n_components=n_components)
     pca.fit(data.X)
+    new_X=pca.fit_transform(data.X)
     if(verbose):
         print(pca.explained_variance_ratio_)
-    return Dataset(X=pca.transform(X),
-                   y=data.y)
+    return dataset.Dataset(X=new_X,
+                           y=data.y)
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
