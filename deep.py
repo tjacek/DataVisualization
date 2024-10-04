@@ -21,12 +21,13 @@ class CNN(object):
         return dataset.Dataset(X=new_X,
                                y=data.y)
 
-    def fit(self,X,y):
+    def fit(self,X,y,class_weight):
         y=tf.one_hot(y,
                      depth=self.params['n_cats'])
         self.model.fit(x=X,
                        y=y,
                        epochs=self.params['n_epochs'],
+                       class_weight=class_weight,
                        callbacks=get_callback())
 
     def predict(self,X):
@@ -47,7 +48,8 @@ def train(data,n_epochs=1000,report=True):
                         random_state=None)
     train,test= list(skf.split(data.X,data.y))[0]
     (X_train,y_train),(X_test,y_test)=data.split(train,test)
-    cnn.fit(X_train,y_train)
+    cnn.fit(X_train,y_train,
+            class_weight=data.class_weight())
     y_pred=cnn.predict(X_test)
     if(report):
         print(classification_report(y_test, y_pred))
@@ -68,7 +70,7 @@ def make_nn(params):
                  outputs=x)
 
 def get_callback():
-    return tf.keras.callbacks.EarlyStopping(monitor='val_loss', 
+    return tf.keras.callbacks.EarlyStopping(monitor='loss', 
                                             patience=5)
 
 

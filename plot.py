@@ -12,7 +12,7 @@ def plot(data,show=True):
     for i,y_i in enumerate(data.y):
         plt.text(data.X[i, 0], 
                  data.X[i, 1], 
-                 str(y_i),
+                 str(int(y_i)),
                  color=plt.cm.tab20(int(y_i)),
                  fontdict={'weight': 'bold', 'size': 9})
     x_min,y_min=data.min()

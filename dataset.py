@@ -46,6 +46,16 @@ class Dataset(object):
     def max(self):
         return np.amax(self.X,axis=0)
 
+    def class_weight(self):
+        params={}
+        for i in range(self.n_cats()):
+            size_i= sum((self.y==i).astype(int))
+            params[i]= 1.0/size_i
+        C= sum(list(params.values()))
+        for i in params:
+            params[i]= params[i]/C
+        return params
+
 def read_csv(in_path:str):
     df=pd.read_csv(in_path)
     raw=df.to_numpy()
