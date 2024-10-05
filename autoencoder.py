@@ -2,7 +2,7 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras import Input, Model
 from tensorflow.keras.models import Sequential
 from keras import regularizers
-import dataset
+import dataset,gauss
 
 class AthroFeatures(object):
     def __init__(self,mult=2,l1=0.00001):
@@ -41,7 +41,12 @@ class AthroFeatures(object):
         return Model(inputs=input_layer, 
 	                 outputs=nn)
 
-if __name__ == '__main__':
-    data=dataset.read_csv("uci/cleveland")
+def aoi_compare(in_path):
+    data=dataset.read_csv(in_path)
     anthr=AthroFeatures()
-    model=anthr.train(data)
+    anthr_data=anthr(data)
+    gauss.fit_gauss(data,verbose=True)
+    gauss.fit_gauss(anthr_data,verbose=True)
+
+if __name__ == '__main__':
+    aoi_compare("uci/cleveland")
