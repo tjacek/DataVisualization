@@ -18,6 +18,11 @@ class MuliGauss(object):
         m=np.matmul(self.inv_conv,diff)
         return np.sqrt(np.dot(diff,m))
 
+    def eigen(self):
+        eig_values=np.linalg.eigvals(self.conv)
+        eig_values/= np.sum(eig_values)
+        return np.round(eig_values, decimals=3)
+
 def fit_gauss(in_path,verbose=True):
     data=dataset.read_csv(in_path)
     mixture=GaussianMixture(n_components=data.n_cats())
@@ -54,5 +59,10 @@ def show_maha(in_path):
                    for dist_i in all_dist] 
     visualize.show_matrix(matrix)
 
+def eigen_gauss(in_path):
+    all_dist=cat_gauss(in_path)
+    matrix=[ dist_i.eigen() for dist_i in all_dist]
+    visualize.show_matrix(matrix)
+
 if __name__ == '__main__':
-    show_maha("uci/cleveland")
+    eigen_gauss("uci/cleveland")
