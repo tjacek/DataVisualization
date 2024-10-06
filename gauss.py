@@ -6,9 +6,17 @@ class MuliGauss(object):
     def __init__(self,mean,conv):
         self.mean=mean
         self.conv=conv
+        self.inv_conv=None
 
     def euclid(self,x):
         return np.linalg.norm(self.mean-x)
+
+    def maha(self,x):
+        if(self.inv_conv is None):
+            self.inv_conv=np.linalg.inv(self.conv)
+        diff= (x-self.mean)
+        m=np.matmul(self.inv_conv,diff)
+        return np.sqrt(np.dot(diff,m))
 
 def fit_gauss(in_path,verbose=True):
     data=dataset.read_csv(in_path)
@@ -39,5 +47,12 @@ def show_euclid(in_path):
                    for dist_i in all_dist] 
     visualize.show_matrix(matrix)
 
+def show_maha(in_path):
+    all_dist=cat_gauss(in_path)
+    matrix=[[  dist_j.maha(dist_i.mean)
+               for dist_j in all_dist]
+                   for dist_i in all_dist] 
+    visualize.show_matrix(matrix)
+
 if __name__ == '__main__':
-    show_euclid("uci/cleveland")
+    show_maha("uci/cleveland")
