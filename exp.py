@@ -4,6 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
 from collections import defaultdict
 from sklearn.metrics import accuracy_score
+import pandas as pd
 import json
 import dataset,autoencoder
 
@@ -34,7 +35,8 @@ class Experiment(object):
             line_i.append(np.mean(acc))
             line_i.append(np.std(acc))
             lines.append(line_i)
-        print(lines)
+        df=pd.DataFrame.from_records(lines)
+        return df
 
     def iter(self):
         for path in self.input_paths:
@@ -47,7 +49,27 @@ class Experiment(object):
                     for split_k in splits:
                         y_pair=split_k.eval(data_i,clf_j)
                         yield data_id,feat_type_i,clf_type_j,y_pair
-    
+
+class UnaggrExp(Experiment):    
+    def get_split(self,data):
+        rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
+                                     n_splits=self.n_splits, 
+                                     random_state=0)
+        splits=[]
+        for train_index,test_index in rskf.split(data.X,data.y):
+            splits.append(self.Split(train_index,test_index))
+        return splits
+
+    class Split(object):
+        def __init__(self,train_index,test_index):
+            self.train_index=train_index
+            self.test_index=test_index
+
+        def eval(self,data,clf):
+            return data.eval(train_index=self.train_index,
+                             test_index=self.test_index,
+                             clf=clf())
+class AggrExp(Experiment):    
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                        n_splits=self.n_splits, 
@@ -96,12 +118,16 @@ def build_exp(in_path:str):
     else:
         input_paths=[conf["data_dir"]]
     output_path=conf["output_path"]    
-    return Experiment(feats=feats,
-    	              clfs=clfs,
-    	              n_splits=n_splits,
-    	              n_repeats=n_repeats,
-    	              input_paths=input_paths,
-    	              output_path=output_path)
+    if(conf["aggr"]):
+        Exp=AggrExp
+    else:
+        Exp=UnaggrExp
+    return Exp(feats=feats,
+    	       clfs=clfs,
+    	       n_splits=n_splits,
+    	       n_repeats=n_repeats,
+    	       input_paths=input_paths,
+    	       output_path=output_path)
 
 def read_conf(in_path):
     with open(in_path, 'r') as file:
@@ -119,4 +145,5 @@ def get_features(feat_type):
     return lambda x:x
 
 exp=build_exp("exp.js")
-exp.to_df()
+df=exp.to_df()
+print(df)
