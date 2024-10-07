@@ -2,6 +2,8 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
+from collections import defaultdict
+from sklearn.metrics import accuracy_score
 import json
 import dataset,autoencoder
 
@@ -20,18 +22,32 @@ class Experiment(object):
     	self.input_paths=input_paths
     	self.output_path=output_path
     
-    def execute(self):
+    def to_df(self):
+        result_dict=defaultdict(lambda :[])
+        for data,feat_type,clf_type,y_pair in self.iter():
+            id_i=f'{data},{feat_type},{clf_type}'
+            result_dict[id_i].append(Result(*y_pair))
+        lines=[]
+        for id_i,results in result_dict.items():
+            line_i=id_i.split(",")
+            acc=[result_j.get_acc() for result_j in results]
+            line_i.append(np.mean(acc))
+            line_i.append(np.std(acc))
+            lines.append(line_i)
+        print(lines)
+
+    def iter(self):
         for path in self.input_paths:
             data_id=path.split('/')[-1]
             data=dataset.read_csv(path)
             splits=self.get_split(data)
-            for name_i,feat_i in self.feats.items():
+            for feat_type_i,feat_i in self.feats.items():
                 data_i=feat_i(data)
-                for name_j,clf_j in self.clfs.items(): 
+                for clf_type_j,clf_j in self.clfs.items(): 
                     for split_k in splits:
-                        pred_k,test_k=split_k.eval(data_i,clf_j)
-                        yield data_id,name_i,name_j,(pred_k,test_k)
-
+                        y_pair=split_k.eval(data_i,clf_j)
+                        yield data_id,feat_type_i,clf_type_j,y_pair
+    
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                        n_splits=self.n_splits, 
@@ -41,7 +57,6 @@ class Experiment(object):
             if((t % self.n_splits)==0):
             	splits.append([])
             splits[-1].append((train_index,test_index))
-        print(len(splits))
         splits=[self.Split(indexes) for indexes in splits]
         return splits
 
@@ -61,6 +76,13 @@ class Experiment(object):
             all_test=np.concatenate(all_test)
             return all_pred,all_test
 
+class Result(object):
+    def __init__(self,y_pred,y_true):
+        self.y_pred=y_pred
+        self.y_true=y_true
+
+    def get_acc(self):
+        return accuracy_score(self.y_pred,self.y_true)
 
 def build_exp(in_path:str):
     conf=read_conf(in_path)
@@ -97,4 +119,4 @@ def get_features(feat_type):
     return lambda x:x
 
 exp=build_exp("exp.js")
-exp.execute()
+exp.to_df()
