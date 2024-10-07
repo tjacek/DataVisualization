@@ -6,7 +6,7 @@ from collections import defaultdict
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import json
-import dataset,autoencoder
+import dataset,autoencoder,utils
 
 class Experiment(object):
     def __init__(self,
@@ -23,6 +23,18 @@ class Experiment(object):
     	self.input_paths=input_paths
     	self.output_path=output_path
     
+    def iter(self):
+        for path in self.input_paths:
+            data_id=path.split('/')[-1]
+            data=dataset.read_csv(path)
+            splits=self.get_split(data)
+            for feat_type_i,feat_i in self.feats.items():
+                data_i=feat_i(data)
+                for clf_type_j,clf_j in self.clfs.items(): 
+                    for split_k in splits:
+                        y_pair=split_k.eval(data_i,clf_j)
+                        yield data_id,feat_type_i,clf_type_j,y_pair
+
     def to_df(self):
         result_dict=defaultdict(lambda :[])
         for data,feat_type,clf_type,y_pair in self.iter():
@@ -38,17 +50,27 @@ class Experiment(object):
         df=pd.DataFrame.from_records(lines)
         return df
 
-    def iter(self):
-        for path in self.input_paths:
-            data_id=path.split('/')[-1]
-            data=dataset.read_csv(path)
-            splits=self.get_split(data)
-            for feat_type_i,feat_i in self.feats.items():
-                data_i=feat_i(data)
-                for clf_type_j,clf_j in self.clfs.items(): 
-                    for split_k in splits:
-                        y_pair=split_k.eval(data_i,clf_j)
-                        yield data_id,feat_type_i,clf_type_j,y_pair
+    def save(self):
+        self.prepare_dirs()
+        for i,result_i in enumerate(self.iter()):
+            data,feat,clf,y_pair=result_i
+            y_pair=np.array(y_pair)
+            out_i=f"{self.output_path}/{data}/{feat}/{clf}/{i}"
+            np.savez(out_i,y_pair)
+
+    def prepare_dirs(self):
+        utils.make_dir(self.output_path)
+        for in_path in self.input_paths:
+            data_id=in_path.split('/')[-1]
+            data_path=f"{self.output_path}/{data_id}"
+            utils.make_dir(data_path)
+            for feat_type_j in self.feats:
+                feat_path=f"{data_path}/{feat_type_j}"
+                utils.make_dir(feat_path)
+                for clf_type_k in self.clfs:
+                    clf_path=f"{feat_path}/{clf_type_k}"
+                    utils.make_dir(clf_path)
+
 
 class UnaggrExp(Experiment):    
     def get_split(self,data):
@@ -145,5 +167,4 @@ def get_features(feat_type):
     return lambda x:x
 
 exp=build_exp("exp.js")
-df=exp.to_df()
-print(df)
+exp.save()
