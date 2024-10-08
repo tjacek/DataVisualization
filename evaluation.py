@@ -56,16 +56,19 @@ def stat_test(in_path:str):
     result_dict=read_results(in_path)
     metrict_dict=MetricDict()(result_dict)
     kf=metrict_dict.key_frame()
-    kf_query=kf.query("data=='cmc' & clf=='RF'")
-    valid_id=list(kf_query['key'])
-    for x,y in itertools.combinations(valid_id, 2):
-        print(x)
-        print(y)
-        for metric_i in metrict_dict.metric_name():
-            x_metric=metrict_dict.dicts[metric_i][x]
-            y_metric=metrict_dict.dicts[metric_i][y]
-            pvalue=stats.ttest_ind(x_metric,y_metric,equal_var=False)[1]
-            print(f"{metric_i}:{pvalue:.4f}")
+    for data_k in kf["data"].unique():
+        kf_query=kf.query(f"data=='{data_k}' & clf=='RF'")
+        valid_id=list(kf_query['key'])
+        for x,y in itertools.combinations(valid_id, 2):
+            print(x)
+            print(y)
+            for metric_i in metrict_dict.metric_name():
+                x_metric=metrict_dict.dicts[metric_i][x]
+                y_metric=metrict_dict.dicts[metric_i][y]
+                pvalue=stats.ttest_ind(x_metric,y_metric,
+                                       equal_var=False)[1]
+                diff=np.mean(x_metric)-np.mean(y_metric)
+                print(f"{metric_i}:{diff:.4f}:{pvalue:.4f}")
 
 def read_results(in_path:str):
     result_dict=defaultdict(lambda :[])
