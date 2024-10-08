@@ -2,7 +2,9 @@ import numpy as np
 import os
 from collections import defaultdict
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
+from scipy import stats
 import pandas as pd
+import itertools
 import exp
 
 class MetricDict(object):
@@ -11,6 +13,7 @@ class MetricDict(object):
                       "balance":balanced_accuracy_score}
         self.dicts={ metric_i:defaultdict(lambda : [])  
                         for metric_i in self.metrics}
+        self.cols=["data","feat","clf","key"]
 
     def __call__(self,result_dict):
         for id_i,results_i in result_dict.items():
@@ -20,8 +23,20 @@ class MetricDict(object):
                 self.dicts[name_j][id_i]=metric_values 	
         return self
 
+    def metric_name(self):
+        return self.metrics.keys()
+
     def keys(self):
     	return self.dicts["acc"].keys()
+
+    def key_frame(self):
+        lines=[]
+        for key_i in self.keys():
+            line_i=key_i.split('/')[-3:]
+            line_i.append(key_i)
+            lines.append(line_i)
+        return pd.DataFrame.from_records(lines,
+                                         columns=self.cols)
 
 def basic_summary(in_path:str):
     result_dict=read_results(in_path)
@@ -37,6 +52,21 @@ def basic_summary(in_path:str):
     df=pd.DataFrame.from_records(lines)
     return df	
 
+def stat_test(in_path:str):
+    result_dict=read_results(in_path)
+    metrict_dict=MetricDict()(result_dict)
+    kf=metrict_dict.key_frame()
+    kf_query=kf.query("data=='cmc' & clf=='RF'")
+    valid_id=list(kf_query['key'])
+    for x,y in itertools.combinations(valid_id, 2):
+        print(x)
+        print(y)
+        for metric_i in metrict_dict.metric_name():
+            x_metric=metrict_dict.dicts[metric_i][x]
+            y_metric=metrict_dict.dicts[metric_i][y]
+            pvalue=stats.ttest_ind(x_metric,y_metric,equal_var=False)[1]
+            print(f"{metric_i}:{pvalue:.4f}")
+
 def read_results(in_path:str):
     result_dict=defaultdict(lambda :[])
     for root, dir, files in os.walk(in_path):
@@ -46,5 +76,5 @@ def read_results(in_path:str):
                 result_dict[root].append(result_i)
     return result_dict
 
-df=basic_summary("exp")
+df=stat_test("exp")
 print(df)
