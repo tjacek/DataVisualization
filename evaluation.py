@@ -60,15 +60,17 @@ def stat_test(in_path:str):
         kf_query=kf.query(f"data=='{data_k}' & clf=='RF'")
         valid_id=list(kf_query['key'])
         for x,y in itertools.combinations(valid_id, 2):
-            print(x)
-            print(y)
+            id_x=get_id(x)
+            id_y=get_id(y)
+            line=f"{id_x},{id_y}"
             for metric_i in metrict_dict.metric_name():
                 x_metric=metrict_dict.dicts[metric_i][x]
                 y_metric=metrict_dict.dicts[metric_i][y]
                 pvalue=stats.ttest_ind(x_metric,y_metric,
                                        equal_var=False)[1]
                 diff=np.mean(x_metric)-np.mean(y_metric)
-                print(f"{metric_i}:{diff:.4f}:{pvalue:.4f}")
+                line+=f",{metric_i}:{diff:.4f}:{pvalue:.4f},{pvalue<0.05}"
+            print(line)
 
 def read_results(in_path:str):
     result_dict=defaultdict(lambda :[])
@@ -78,6 +80,9 @@ def read_results(in_path:str):
                 result_i=exp.read_result(f"{root}/{file_i}")
                 result_dict[root].append(result_i)
     return result_dict
+
+def get_id(path:str):
+    return ",".join( path.split('/')[-3:])
 
 df=stat_test("exp")
 print(df)
