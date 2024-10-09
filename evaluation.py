@@ -52,12 +52,16 @@ def basic_summary(in_path:str):
     df=pd.DataFrame.from_records(lines)
     return df	
 
-def stat_test(in_path:str):
+def stat_test(in_path,query=None):
+    if(query is None):
+        query={"clf":"RF"}
     result_dict=read_results(in_path)
     metrict_dict=MetricDict()(result_dict)
+    query_str=' '.join([ f"& {col_i}=='{value_i}'" for col_i,value_i in query.items()])
     kf=metrict_dict.key_frame()
     for data_k in kf["data"].unique():
-        kf_query=kf.query(f"data=='{data_k}' & clf=='RF'")
+#        raise Exception(f"data=='{data_k}' {query_str}")
+        kf_query=kf.query(f"data=='{data_k}' {query_str}") #& clf==RF)
         valid_id=list(kf_query['key'])
         for x,y in itertools.combinations(valid_id, 2):
             id_x=get_id(x)
@@ -84,5 +88,5 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("exp")
+df=stat_test("exp",{'feat':'base'})
 print(df)
