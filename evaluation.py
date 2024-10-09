@@ -88,5 +88,5 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("exp",{'feat':'base'})
+df=stat_test("deep",{'feat':'deep'})
 print(df)

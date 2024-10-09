@@ -6,7 +6,7 @@ from collections import defaultdict
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import json
-import dataset,autoencoder,utils
+import dataset,autoencoder,deep,utils
 
 class Experiment(object):
     def __init__(self,
@@ -172,8 +172,12 @@ def get_clf(clf_type):
 def get_features(feat_type):
     if(feat_type=="antr"):
         return autoencoder.AthroFeatures()
-    return lambda x:x
+    if(feat_type=="base"):
+        return lambda x:x
+    if(feat_type=="deep"):
+        return deep.DeepFeatures()
+    raise Exception(f"Unknow feature type:{feat_type}")
 
 if __name__ == '__main__':
-    exp=build_exp("exp.js")
+    exp=build_exp("json/deep.js")
     exp.save()

@@ -6,6 +6,17 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 import dataset
 
+class DeepFeatures(object):
+    def __init__(self,n_epochs=1000):
+         self.n_epochs=n_epochs
+         self.model=None
+
+    def __call__(self,data):
+        self.model=train(data,
+                         n_epochs=self.n_epochs,
+                         report=False)
+        return self.model(data)
+
 class CNN(object):
     def __init__(self,model,params):
         self.model=model
