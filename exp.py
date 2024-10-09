@@ -71,7 +71,6 @@ class Experiment(object):
                     clf_path=f"{feat_path}/{clf_type_k}"
                     utils.make_dir(clf_path)
 
-
 class UnaggrExp(Experiment):    
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
@@ -128,6 +127,15 @@ class Result(object):
     def get_acc(self):
         return accuracy_score(self.y_pred,self.y_true)
 
+    def get_metric(self,metric):
+        return metric(self.y_pred,self.y_true)
+
+def read_result(in_path:str):
+    raw=list(np.load(in_path).values())[0]
+    y_pred,y_true=raw[0],raw[1]
+    return Result(y_pred=y_pred,
+                  y_true=y_true)
+
 def build_exp(in_path:str):
     conf=read_conf(in_path)
     n_splits,n_repeats=conf["n_splits"],conf["n_repeats"]
@@ -166,5 +174,6 @@ def get_features(feat_type):
         return autoencoder.AthroFeatures()
     return lambda x:x
 
-exp=build_exp("exp.js")
-exp.save()
+if __name__ == '__main__':
+    exp=build_exp("exp.js")
+    exp.save()
