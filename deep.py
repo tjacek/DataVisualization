@@ -67,7 +67,7 @@ def train(data,n_epochs=1000,report=True):
     return cnn
 
 def make_nn(params):
-    input_layer = Input(shape=(params['dims']))
+    input_layer = Input(shape=(params['dims'],))
     x=Dense(2*params['dims'],
               activation='relu',
               name=f"layer_1")(input_layer)

@@ -55,26 +55,34 @@ def basic_summary(in_path:str):
 def stat_test(in_path,query=None):
     if(query is None):
         query={"clf":"RF"}
+    query_str=' '.join([ f"& {col_i}=='{value_i}'" for col_i,value_i in query.items()])
     result_dict=read_results(in_path)
     metrict_dict=MetricDict()(result_dict)
-    query_str=' '.join([ f"& {col_i}=='{value_i}'" for col_i,value_i in query.items()])
+    cols=["id_x","id_y",]
+    for metric_i in metrict_dict.metric_name():
+        cols+=[f"{metric_i}_{col}" 
+                    for col in ["diff","pvalue","sig"]]
+    lines=[]
     kf=metrict_dict.key_frame()
     for data_k in kf["data"].unique():
-#        raise Exception(f"data=='{data_k}' {query_str}")
         kf_query=kf.query(f"data=='{data_k}' {query_str}") #& clf==RF)
         valid_id=list(kf_query['key'])
         for x,y in itertools.combinations(valid_id, 2):
             id_x=get_id(x)
             id_y=get_id(y)
-            line=f"{id_x},{id_y}"
+            line=[id_x,id_y]
             for metric_i in metrict_dict.metric_name():
                 x_metric=metrict_dict.dicts[metric_i][x]
                 y_metric=metrict_dict.dicts[metric_i][y]
                 pvalue=stats.ttest_ind(x_metric,y_metric,
                                        equal_var=False)[1]
                 diff=np.mean(x_metric)-np.mean(y_metric)
-                line+=f",{metric_i}:{diff:.4f}:{pvalue:.4f},{pvalue<0.05}"
-            print(line)
+                line+=[diff,pvalue,pvalue<0.5]
+                
+            lines.append(line)
+    df=pd.DataFrame.from_records(lines,
+                                 columns=cols)
+    return df
 
 def read_results(in_path:str):
     result_dict=defaultdict(lambda :[])
@@ -88,5 +96,5 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("deep",{'feat':'deep'})
+df=stat_test("deep",{'feat':'base'})
 print(df)

@@ -146,7 +146,7 @@ def build_exp(in_path:str):
         input_paths=[ f"{data_dir}/{path_i}"
                        for path_i in conf["data"]]
     else:
-        input_paths=[conf["data_dir"]]
+        input_paths=utils.top_files(conf["data_dir"])
     output_path=conf["output_path"]    
     if(conf["aggr"]):
         Exp=AggrExp
