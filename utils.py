@@ -47,30 +47,3 @@ class DirFun(object):
             else:
                 args[i]=new_values[arg_i]
         return fun(*args, **kwargs)
-#class DirFun(object):
-#    def __init__(self,dir_args=None):
-#        if(dir_args is None):
-#            dir_args=[("in_path",0)]
-#        self.dir_args=dir_args
-
-#    def __call__(self, fun):
-#        @wraps(fun)
-#        def decor_fun(*args, **kwargs):
-#            args=list(args)
-#            in_path=self.get_input(*args, **kwargs)
-#            if(not os.path.isdir(in_path) ):
-#                return fun(*args, **kwargs)
-#            result_dict={}
-#            for in_i in top_files(in_path):
-#                id_i=in_i.split('/')[-1]
-#                args[0]=in_i
-#                result_i=fun(*args, **kwargs)
-#                result_dict[id_i]=result_i
-#            return result_dict
-#        return decor_fun
-        
-#    def get_input(self,*args, **kwargs):
-#        name,i=self.dir_args[0]
-#        if(name in kwargs):
-#            return kwargs[name]
-#        return args[0]

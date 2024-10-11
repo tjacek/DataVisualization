@@ -38,6 +38,7 @@ def cat_gauss(in_path):
     all_dist=[]
     for i in range(data.n_cats()):
         x_i=data.get_cat(i)
+        print(x_i.shape)
         alg_i=GaussianMixture(n_components=1)
         alg_i.fit(x_i)
         gauss_i=MuliGauss(mean=np.squeeze(alg_i.means_,0),
@@ -45,19 +46,23 @@ def cat_gauss(in_path):
         all_dist.append(gauss_i)
     return all_dist
 
-def show_euclid(in_path):
+def show_euclid(in_path,show=False):
     all_dist=cat_gauss(in_path)
     matrix=[[  dist_j.euclid(dist_i.mean)
                for dist_j in all_dist]
                    for dist_i in all_dist] 
-    visualize.show_matrix(matrix)
+    if(show):
+        visualize.show_matrix(matrix)
+    return matrix
 
-def show_maha(in_path):
+def show_maha(in_path,show=False):
     all_dist=cat_gauss(in_path)
     matrix=[[  dist_j.maha(dist_i.mean)
                for dist_j in all_dist]
                    for dist_i in all_dist] 
-    visualize.show_matrix(matrix)
+    if(show):
+        visualize.show_matrix(matrix)
+    return matrix
 
 def eigen_gauss(in_path):
     all_dist=cat_gauss(in_path)
@@ -65,4 +70,4 @@ def eigen_gauss(in_path):
     visualize.show_matrix(matrix)
 
 if __name__ == '__main__':
-    eigen_gauss("uci/cleveland")
+    visualize.HMGenerator(show_maha)("../uci","maha")

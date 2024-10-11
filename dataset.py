@@ -15,7 +15,7 @@ class Dataset(object):
         return self.X.shape[1]
 
     def n_cats(self):
-        return int(max(self.y))
+        return int(max(self.y))+1
 
     def get_cat(self,i):
     	return self.X[self.y==i]
@@ -57,14 +57,14 @@ class Dataset(object):
         return params
 
 def read_csv(in_path:str):
-    df=pd.read_csv(in_path)
+    df=pd.read_csv(in_path,header=None)
     raw=df.to_numpy()
     X,y=raw[:,:-1],raw[:,-1]
     X= preprocessing.RobustScaler().fit_transform(X)
     return Dataset(X,y)
 
 if __name__ == '__main__':
-    data=read_csv("uci/cleveland")
+    data=read_csv("../uci/lymphography")
     for i in range(data.n_cats()):
         x_i=data.get_cat(i)
-        get_pca(x_i)
+        print(x_i.shape)
