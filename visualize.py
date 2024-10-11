@@ -1,19 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.manifold import MDS
 import utils
 
 class HMGenerator(object):
-    def __init__(self,fun,feats=None):
+    def __init__(self,fun,feats=None,distance=True):
         self.fun=fun
         self.feats=None
+        self.distance=True
 
     def __call__(self,in_path,out_path):
         utils.make_dir(out_path)
         @utils.DirFun({'in_path':0,'out_path':1})
         def helper(in_path,out_path):
             matrix=self.fun(in_path)
-            show_matrix(matrix,show=False)
+            if(self.distance): 
+                 show_distance(matrix,show=False)
+            else:
+                 show_matrix(matrix,show=False)
             plt.savefig(out_path)
         helper(in_path,out_path)
 
@@ -29,6 +34,22 @@ def show_matrix(matrix,show=True):
     if(show):
         plt.show()
 
+def show_distance(matrix,show=True):
+    mds=MDS(n_components=2,
+                     dissimilarity="precomputed")
+    pos=mds.fit(matrix).embedding_
+    plt.figure()
+    for i,pos_i in enumerate( pos):
+        print(pos_i.shape)
+        plt.text(pos_i[0], 
+                 pos_i[1], 
+                 str(i))
+    pos_min=pos.min()
+    pos_max=pos.max()
+    plt.xlim((pos_min,pos_max))
+    plt.ylim((pos_min,pos_max))
+    if(show):
+        plt.show()
 if __name__ == '__main__':
     a=np.ones((10,10))-np.identity(10)
     show_matrix(a)

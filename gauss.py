@@ -70,4 +70,4 @@ def eigen_gauss(in_path):
     visualize.show_matrix(matrix)
 
 if __name__ == '__main__':
-    visualize.HMGenerator(show_maha)("../uci","maha")
+    visualize.HMGenerator(show_euclid)("../uci","euclid")
