@@ -16,27 +16,61 @@ def top_files(path):
 class DirFun(object):
     def __init__(self,dir_args=None):
         if(dir_args is None):
-            dir_args=[("in_path",0)]
+            dir_args={"in_path":0}
         self.dir_args=dir_args
 
     def __call__(self, fun):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
-            args=list(args)
-            in_path=self.get_input(*args, **kwargs)
-            if(not os.path.isdir(in_path) ):
-                return fun(*args, **kwargs)
-            result_dict={}
-            for in_i in top_files(in_path):
+            old_values=self.get_input(*args, **kwargs)
+            for in_i in top_files(old_values['in_path']):
                 id_i=in_i.split('/')[-1]
-                args[0]=in_i
-                result_i=fun(*args, **kwargs)
-                result_dict[id_i]=result_i
-            return result_dict
+                new_values={name_j:f"{value_j}/{id_i}"  
+                    for name_j,value_j in old_values.items()}
+                self.eval_fun(fun,new_values,args,kwargs)
         return decor_fun
-        
+    
     def get_input(self,*args, **kwargs):
-        name,i=self.dir_args[0]
-        if(name in kwargs):
-            return kwargs[name]
-        return args[0]
+        mod_values={}
+        for arg,index in self.dir_args.items():
+            if(arg in kwargs):
+                mod_values[arg]=kwargs[arg]
+            else:
+                mod_values[arg]=args[index]
+        return mod_values
+
+    def eval_fun(self,fun,new_values,args,kwargs):
+        args=list(args)
+        for arg_i,i in self.dir_args.items():
+            if(arg_i in kwargs):
+                kwargs[arg_i]=new_values[arg_i]
+            else:
+                args[i]=new_values[arg_i]
+        return fun(*args, **kwargs)
+#class DirFun(object):
+#    def __init__(self,dir_args=None):
+#        if(dir_args is None):
+#            dir_args=[("in_path",0)]
+#        self.dir_args=dir_args
+
+#    def __call__(self, fun):
+#        @wraps(fun)
+#        def decor_fun(*args, **kwargs):
+#            args=list(args)
+#            in_path=self.get_input(*args, **kwargs)
+#            if(not os.path.isdir(in_path) ):
+#                return fun(*args, **kwargs)
+#            result_dict={}
+#            for in_i in top_files(in_path):
+#                id_i=in_i.split('/')[-1]
+#                args[0]=in_i
+#                result_i=fun(*args, **kwargs)
+#                result_dict[id_i]=result_i
+#            return result_dict
+#        return decor_fun
+        
+#    def get_input(self,*args, **kwargs):
+#        name,i=self.dir_args[0]
+#        if(name in kwargs):
+#            return kwargs[name]
+#        return args[0]

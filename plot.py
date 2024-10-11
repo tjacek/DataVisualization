@@ -8,12 +8,11 @@ class PlotGenerator(object):
 
     def __call__(self,in_path,out_path):
         utils.make_dir(out_path)
-        @utils.DirFun()
+        @utils.DirFun({'in_path':0,'out_path':1})
         def helper(in_path,out_path):
+            print(out_path)
             data=dataset.read_csv(in_path)
-            id_i=in_path.split("/")[-1]
-            out_i=f'{out_path}/{id_i}'
-            return reduce_plots(data,out_i,transform=None)    
+            return reduce_plots(data,out_path,transform=None)    
         helper(in_path,out_path)
 
 def plot(data,show=True):
