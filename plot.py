@@ -2,6 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import dataset,reduction,utils
 
+class PlotGenerator(object):
+    def __init__(self,feats=None):
+        self.feats=None
+
+    def __call__(self,in_path,out_path):
+        utils.make_dir(out_path)
+        @utils.DirFun()
+        def helper(in_path,out_path):
+            data=dataset.read_csv(in_path)
+            id_i=in_path.split("/")[-1]
+            out_i=f'{out_path}/{id_i}'
+            return reduce_plots(data,out_i,transform=None)    
+        helper(in_path,out_path)
+
 def plot(data,show=True):
     if(data.dim()!=2):
         raise Exception(f"dim of data:{data.dim()}")    
@@ -41,10 +55,4 @@ def reduce_plots(data,out_path,transform=None):
         plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
-    import evaluation
-#    data=evaluation.antr_features("uci/cleveland")["antr"]
-    import deep
-    data=dataset.read_csv("uci/cleveland")
-    cnn=deep.train(data,report=False)
-    data=cnn(data)
-    reduce_plots(data,"nn_plot",transform=None)    
+    PlotGenerator()("../uci","reduction")
