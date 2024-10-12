@@ -166,7 +166,7 @@ def read_conf(in_path):
 
 def get_clf(clf_type):
     if(clf_type=="RF"):	
-	    return lambda : RandomForestClassifier()
+	    return lambda : RandomForestClassifier(class_weight="balanced")#_subsample")
     return lambda : LogisticRegression(solver='liblinear')
 
 def get_features(feat_type):
