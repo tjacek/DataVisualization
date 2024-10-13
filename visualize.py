@@ -50,6 +50,15 @@ def show_distance(matrix,show=True):
     plt.ylim((pos_min,pos_max))
     if(show):
         plt.show()
+
+def bar_plot(x):
+    for i,value in enumerate(x):
+        plt.bar(i, width=0.8, 
+            height=value,
+            bottom=None, 
+            align='center', data=None)
+    plt.show()
+
 if __name__ == '__main__':
     a=np.ones((10,10))-np.identity(10)
     show_matrix(a)

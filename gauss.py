@@ -78,7 +78,7 @@ def good_of_fit(in_path):
         criterion.append( mixture.aic(data.X))
     crit_max=np.amax(criterion)
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
-    print(norm_cri)
+    visualize.bar_plot(norm_cri)
 
 if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")
