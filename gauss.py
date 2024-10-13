@@ -69,5 +69,17 @@ def eigen_gauss(in_path):
     matrix=[ dist_i.eigen() for dist_i in all_dist]
     visualize.show_matrix(matrix)
 
+def good_of_fit(in_path):
+    data=dataset.read_csv(in_path)
+    criterion=[]
+    for i in range(2*data.n_cats()):
+        mixture=GaussianMixture(n_components=i+1)
+        mixture.fit(data.X)
+        criterion.append( mixture.aic(data.X))
+    crit_max=np.amax(criterion)
+    norm_cri=[ crit_i/crit_max for crit_i in criterion]
+    print(norm_cri)
+
 if __name__ == '__main__':
-    visualize.HMGenerator(show_euclid)("../uci","euclid")
+#    visualize.HMGenerator(show_euclid)("../uci","euclid")
+    good_of_fit("../uci/cleveland")
