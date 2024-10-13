@@ -15,8 +15,12 @@ class DeepFeatures(object):
         self.model=train(data,
                          n_epochs=self.n_epochs,
                          report=False)
-        return self.model(data)
-
+        output= self.model.get_layer("layer_2").output 
+        extractor=Model(inputs=self.model.input,
+                        outputs=output)
+        new_X=extractor.predict(data.X)
+        return dataset.Dataset(X=new_X,
+                               y=data.y)
 class ClfCNN(object):
     def __init__(self,n_epochs=1000):
         self.n_epochs=n_epochs
@@ -42,33 +46,32 @@ class ClfCNN(object):
         pred= self.model.predict(X)
         return np.argmax(pred,axis=1)
 
-class CNN(object):
-    def __init__(self,model,params):
-        self.model=model
-        self.extractor=None
-        self.params=params
+#class CNN(object):
+#    def __init__(self,model,params):
+#        self.model=model
+#        self.extractor=None
+#        self.params=params
 
-    def __call__(self,data):
-#        self.train(data)
-        output= self.model.get_layer("layer_2").output 
-        extractor=Model(inputs=self.model.input,
-                        outputs=output)
-        new_X=extractor.predict(data.X)
-        return dataset.Dataset(X=new_X,
-                               y=data.y)
+#    def __call__(self,data):
+#        output= self.model.get_layer("layer_2").output 
+#        extractor=Model(inputs=self.model.input,
+#                        outputs=output)
+#        new_X=extractor.predict(data.X)
+#        return dataset.Dataset(X=new_X,
+#                               y=data.y)
 
-    def fit(self,X,y,class_weight=None):
-        y=tf.one_hot(y,
-                     depth=self.params['n_cats'])
-        self.model.fit(x=X,
-                       y=y,
-                       epochs=self.params['n_epochs'],
-                       class_weight=class_weight,
-                       callbacks=get_callback())
+#    def fit(self,X,y,class_weight=None):
+#        y=tf.one_hot(y,
+#                     depth=self.params['n_cats'])
+#        self.model.fit(x=X,
+#                       y=y,
+#                       epochs=self.params['n_epochs'],
+#                       class_weight=class_weight,
+#                       callbacks=get_callback())
 
-    def predict(self,X):
-        pred= self.model.predict(X)
-        return np.argmax(pred,axis=1)
+#    def predict(self,X):
+#        pred= self.model.predict(X)
+#        return np.argmax(pred,axis=1)
 
 def train(data,n_epochs=1000,report=True):
     params={"n_cats":data.n_cats(),
@@ -77,19 +80,20 @@ def train(data,n_epochs=1000,report=True):
     model=make_nn(params)
     model.compile(loss='categorical_crossentropy',
                   optimizer='adam') 
-    cnn=CNN(model=model,
-            params=params)
     skf=StratifiedKFold(n_splits=2, 
                         shuffle=True, 
                         random_state=None)
     train,test= list(skf.split(data.X,data.y))[0]
     (X_train,y_train),(X_test,y_test)=data.split(train,test)
-    cnn.fit(X_train,y_train,
+    y_train=tf.one_hot(y_train,depth=params['n_cats'])
+    model.fit(X_train,y_train,
             class_weight=data.class_weight())
-    y_pred=cnn.predict(X_test)
     if(report):
+        y_pred=cnn.predict(X_test)
+        y_pred=np.argmax(y_pred,axis=1)
+        y_test=np.argmax(y_test,axis=1)
         print(classification_report(y_test, y_pred))
-    return cnn
+    return model
 
 def make_nn(params):
     input_layer = Input(shape=(params['dims'],))

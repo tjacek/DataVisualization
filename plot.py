@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import dataset,reduction,utils
+import deep
 
 class PlotGenerator(object):
     def __init__(self,feats=None):
@@ -35,7 +36,7 @@ def plot(data,show=True):
     if(show):
         plt.show()
 
-def reduce_plots(data,out_path,transform=None):
+def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
         data=dataset.read_csv(in_path)
     if(transform is None):
@@ -46,12 +47,17 @@ def reduce_plots(data,out_path,transform=None):
                     "mda":reduction.mda_transform,
                     "tsne":reduction.tsne_transform,
                     "ensemble":reduction.ensemble_transform}
-    utils.make_dir(out_path)
+    if(out_path):
+        utils.make_dir(out_path)
     for name_i,transform_i in transform.items():
         data_i=transform_i(data,n_components=2)
         plot(data_i,
-             show=False)
-        plt.savefig(f'{out_path}/{name_i}')
+             show=show)
+        if(out_path):
+            plt.savefig(f'{out_path}/{name_i}')
 
 if __name__ == '__main__':
-    PlotGenerator()("../uci","reduction")
+#    PlotGenerator()("../uci","reduction")
+    data=dataset.read_csv("../uci/cmc")
+    data=deep.DeepFeatures()(data)
+    reduce_plots(data,show=True)
