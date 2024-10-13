@@ -51,9 +51,9 @@ class Dataset(object):
         for i in range(self.n_cats()):
             size_i= sum((self.y==i).astype(int))
             params[i]= 1.0/size_i
-        C= sum(list(params.values()))
+        Z= sum(list(params.values()))
         for i in params:
-            params[i]= params[i]/C
+            params[i]= params[i]/Z
         return params
 
 def read_csv(in_path:str):
@@ -62,6 +62,17 @@ def read_csv(in_path:str):
     X,y=raw[:,:-1],raw[:,-1]
     X= preprocessing.RobustScaler().fit_transform(X)
     return Dataset(X,y)
+
+def get_class_weights(y):
+    params={}
+    n_cats=int(max(y))+1
+    for i in range(n_cats):
+        size_i=(y==i).shape[0]
+        params[i]= 1.0/size_i
+    Z= sum(list(params.values()))
+    for i in params:
+        params[i]= params[i]/Z
+    return params
 
 if __name__ == '__main__':
     data=read_csv("../uci/lymphography")

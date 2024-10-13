@@ -17,6 +17,31 @@ class DeepFeatures(object):
                          report=False)
         return self.model(data)
 
+class ClfCNN(object):
+    def __init__(self,n_epochs=1000):
+        self.n_epochs=n_epochs
+        self.model=None
+
+    def fit(self,X,y):
+        params={"n_cats": int(max(y))+1,
+                'dims': X.shape[1],
+                'n_epochs':self.n_epochs}
+        self.model=make_nn(params)
+        self.model.compile(loss='categorical_crossentropy',
+                           optimizer='adam') 
+        class_weight=dataset.get_class_weights(y)
+        y=tf.one_hot(y,
+                     depth=params['n_cats'])
+        self.model.fit(x=X,
+                       y=y,
+                       epochs=params['n_epochs'],
+                       class_weight=class_weight,
+                       callbacks=get_callback())
+
+    def predict(self,X):
+        pred= self.model.predict(X)
+        return np.argmax(pred,axis=1)
+
 class CNN(object):
     def __init__(self,model,params):
         self.model=model
@@ -32,7 +57,7 @@ class CNN(object):
         return dataset.Dataset(X=new_X,
                                y=data.y)
 
-    def fit(self,X,y,class_weight):
+    def fit(self,X,y,class_weight=None):
         y=tf.one_hot(y,
                      depth=self.params['n_cats'])
         self.model.fit(x=X,

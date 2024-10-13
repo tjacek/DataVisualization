@@ -166,8 +166,12 @@ def read_conf(in_path):
 
 def get_clf(clf_type):
     if(clf_type=="RF"):	
-	    return lambda : RandomForestClassifier(class_weight="balanced")#_subsample")
-    return lambda : LogisticRegression(solver='liblinear')
+        return lambda : RandomForestClassifier(class_weight="balanced")#_subsample")
+    if(clf_type=="LR"):
+        return lambda : LogisticRegression(solver='liblinear')
+    if(clf_type=="deep"):
+        return lambda : deep.ClfCNN()
+    raise Exception(f"Unknow clf type:{clf_type}")
 
 def get_features(feat_type):
     if(feat_type=="antr"):
@@ -179,5 +183,5 @@ def get_features(feat_type):
     raise Exception(f"Unknow feature type:{feat_type}")
 
 if __name__ == '__main__':
-    exp=build_exp("json/deep.js")
+    exp=build_exp("json/clf.js")
     exp.save()
