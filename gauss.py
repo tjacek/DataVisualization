@@ -1,6 +1,20 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture
-import dataset,visualize
+import dataset,visualize,utils
+
+class GaussExp(object):
+    def __init__(self,feats=None):
+        self.feats=None
+
+    def __call__(self,in_path,out_path):
+        utils.make_dir(out_path)
+        @utils.DirFun({'in_path':0,'out_path':1})
+        def helper(in_path,out_path):
+            print(in_path)
+            norm_cri,k=good_of_fit(in_path,show=False)
+            point_distribution(in_path,k=k,show=out_path)
+#            plt.savefig(out_path)
+        helper(in_path,out_path)
 
 class MuliGauss(object):
     def __init__(self,mean,conv):
@@ -84,7 +98,7 @@ def eigen_gauss(in_path):
     matrix=[ dist_i.eigen() for dist_i in all_dist]
     visualize.show_matrix(matrix)
 
-def good_of_fit(in_path):
+def good_of_fit(in_path,show=True):
     data=dataset.read_csv(in_path)
     criterion=[]
     for i in range(2*data.n_cats()):
@@ -92,9 +106,11 @@ def good_of_fit(in_path):
         mixture.fit(data.X)
         criterion.append( mixture.aic(data.X))
     crit_max= np.abs(np.amax(criterion))
+    k=np.argmin(criterion)
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
-    visualize.bar_plot(norm_cri)
-
+    if(show):
+        visualize.bar_plot(norm_cri)
+    return norm_cri,k
 
 def point_distribution(in_path,k=5,show=True):
     data=dataset.read_csv(in_path)
@@ -111,9 +127,9 @@ def point_distribution(in_path,k=5,show=True):
         cluster_i=np.argmax(prob_i)
         y_i=int(data.y[i])
         hist[cluster_i][y_i]+=1
-    if(show):
-        visualize.stacked_bar_plot(hist)
+    visualize.stacked_bar_plot(hist,show=show)
 
 if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")
-    point_distribution("../uci/cmc")
+#    point_distribution("../uci/cleveland")
+     GaussExp()("../uci","gauss")
