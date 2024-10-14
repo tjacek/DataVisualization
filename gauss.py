@@ -7,16 +7,31 @@ class MuliGauss(object):
         self.mean=mean
         self.conv=conv
         self.inv_conv=None
+        self.Z=None
+    
+    def __call__(self,x):
+        if(self.Z is None):
+            k=self.dim()
+            det=np.linalg.det(self.conv)
+            self.Z=(2*np.pi)**k
+            self.Z=np.sqrt(self.Z*det)
+        return np.exp(-0.5*self.maha(x,False))/self.Z   
+
+    def dim(self):
+        return self.mean.shape[0]
 
     def euclid(self,x):
         return np.linalg.norm(self.mean-x)
 
-    def maha(self,x):
+    def maha(self,x,sqrt=True):
         if(self.inv_conv is None):
             self.inv_conv=np.linalg.inv(self.conv)
         diff= (x-self.mean)
         m=np.matmul(self.inv_conv,diff)
-        return np.sqrt(np.dot(diff,m))
+        if(sqrt):
+            return np.sqrt(np.dot(diff,m))
+        else:
+            return np.dot(diff,m)
 
     def eigen(self):
         eig_values=np.linalg.eigvals(self.conv)
@@ -76,10 +91,28 @@ def good_of_fit(in_path):
         mixture=GaussianMixture(n_components=i+1)
         mixture.fit(data.X)
         criterion.append( mixture.aic(data.X))
-    crit_max=np.amax(criterion)
+    crit_max= np.abs(np.amax(criterion))
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
     visualize.bar_plot(norm_cri)
 
+
+def point_distribution(in_path,k=5):
+    data=dataset.read_csv(in_path)
+    mixture=GaussianMixture(n_components=k)
+    mixture.fit(data.X)
+    all_dist=[]
+    for i in range(data.n_cats()):
+        gauss_i=MuliGauss(mean=mixture.means_[i],
+                          conv=mixture.covariances_[i])
+        all_dist.append(gauss_i)
+    hist=np.zeros((k,data.n_cats()))
+    for i,x_i in enumerate(data.X):
+        prob_i=[ dist_j(x_i) for dist_j in all_dist ]
+        cluster_i=np.argmax(prob_i)
+        y_i=int(data.y[i])
+        hist[cluster_i][y_i]+=1
+    print(hist)
+
 if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")
-    good_of_fit("../uci/cleveland")
+    point_distribution("../uci/cleveland")
