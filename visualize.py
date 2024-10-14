@@ -59,6 +59,24 @@ def bar_plot(x):
             align='center', data=None)
     plt.show()
 
+def stacked_bar_plot(hist):
+    n_clusters=hist.shape[0]
+    clusters= np.arange(n_clusters)
+    hist_dict={i:hist_i for i,hist_i in enumerate(hist.T)}
+    width = 0.6 
+    fig, ax = plt.subplots()
+    bottom = np.zeros(n_clusters)
+    for i,hist_i in hist_dict.items():
+        print(hist_i.shape)
+        p = plt.bar(clusters, 
+                    hist_i, 
+                    width=width, 
+                    label=i, 
+                    bottom=bottom)
+        bottom += hist_i
+        ax.bar_label(p, label_type='center')
+    plt.show()
+
 if __name__ == '__main__':
     a=np.ones((10,10))-np.identity(10)
     show_matrix(a)

@@ -96,7 +96,7 @@ def good_of_fit(in_path):
     visualize.bar_plot(norm_cri)
 
 
-def point_distribution(in_path,k=5):
+def point_distribution(in_path,k=5,show=True):
     data=dataset.read_csv(in_path)
     mixture=GaussianMixture(n_components=k)
     mixture.fit(data.X)
@@ -111,8 +111,9 @@ def point_distribution(in_path,k=5):
         cluster_i=np.argmax(prob_i)
         y_i=int(data.y[i])
         hist[cluster_i][y_i]+=1
-    print(hist)
+    if(show):
+        visualize.stacked_bar_plot(hist)
 
 if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")
-    point_distribution("../uci/cleveland")
+    point_distribution("../uci/cmc")
