@@ -1,20 +1,6 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture
-import dataset,visualize,utils
-
-class GaussExp(object):
-    def __init__(self,feats=None):
-        self.feats=None
-
-    def __call__(self,in_path,out_path):
-        utils.make_dir(out_path)
-        @utils.DirFun({'in_path':0,'out_path':1})
-        def helper(in_path,out_path):
-            print(in_path)
-            norm_cri,k=good_of_fit(in_path,show=False)
-            point_distribution(in_path,k=k,show=out_path)
-#            plt.savefig(out_path)
-        helper(in_path,out_path)
+import dataset,visualize
 
 class MuliGauss(object):
     def __init__(self,mean,conv):
