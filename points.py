@@ -15,9 +15,10 @@ class GaussExp(object):
             plt.savefig(out_path)
         helper(in_path,out_path)
 
-def stability_test(in_path,iter=10):
+def stability_test(in_path,n_iters=100):
     size_counter=defaultdict(lambda:0)
-    for _ in range(iter):
+    for i in range(n_iters):
+        print(i)
         _,k=gauss.good_of_fit(in_path,show=False)
         size_counter[k]=size_counter[k]+1
     print(size_counter)

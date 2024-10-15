@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.mixture import GaussianMixture
+from sklearn.mixture import GaussianMixture,BayesianGaussianMixture
 import dataset,visualize
 
 class MuliGauss(object):
@@ -84,13 +84,28 @@ def eigen_gauss(in_path):
     matrix=[ dist_i.eigen() for dist_i in all_dist]
     visualize.show_matrix(matrix)
 
-def good_of_fit(in_path,show=True):
+def get_mixture_alg(alg_type):
+    if(alg_type=="bayes"):
+        return BayesianGaussianMixture
+    return GaussianMixture
+
+def bic(alg, X):
+    n_effect_comp = len(np.unique(alg.predict(X)))
+    _, n_features = alg.means_.shape      
+    cov_params = n_effect_comp * n_features * (n_features + 1) / 2.
+    mean_params = n_features * n_effect_comp
+    _n_parameters=int(cov_params + mean_params + n_effect_comp - 1)
+    return (-2 * alg.score(X) * X.shape[0] +
+                _n_parameters * np.log(X.shape[0]))
+
+def good_of_fit(in_path,show=True,alg_type="bayes"):
     data=dataset.read_csv(in_path)
+    mixture_alg= get_mixture_alg(alg_type)
     criterion=[]
     for i in range(2*data.n_cats()):
-        mixture=GaussianMixture(n_components=i+1)
+        mixture=mixture_alg(n_components=i+1)
         mixture.fit(data.X)
-        criterion.append( mixture.aic(data.X))
+        criterion.append( bic(mixture,data.X))
     crit_max= np.abs(np.amax(criterion))
     k=np.argmin(criterion)
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
