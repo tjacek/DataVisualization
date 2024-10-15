@@ -4,7 +4,6 @@ import dataset,visualize
 
 class BasicMixture(object):
     def __init__(self,criterion="bic"):
-#        self.alg=GaussianMixture
         self.criterion=criterion
         self.alg=None
 
@@ -15,6 +14,27 @@ class BasicMixture(object):
     def compute_criterion(self,X):
         if(self.criterion=="bic"):
             return self.alg.bic(X)
+        else:
+            return self.alg.aix(X)
+
+class BayesMixture(object):
+    def __init__(self,criterion="bic"):
+        self.criterion=criterion
+        self.alg=None
+
+    def fit(self,X,n_components=2):
+        self.alg=BayesianGaussianMixture(n_components=n_components)
+        self.alg.fit(X)
+    
+    def compute_criterion(self,X):
+        if(self.criterion=="bic"):
+            n_effect_comp = len(np.unique(self.alg.predict(X)))
+            _, n_features = self.alg.means_.shape      
+            cov_params = n_effect_comp * n_features * (n_features + 1) / 2.
+            mean_params = n_features * n_effect_comp
+            _n_parameters=int(cov_params + mean_params + n_effect_comp - 1)
+            return (-2 * self.alg.score(X) * X.shape[0] +
+                    _n_parameters * np.log(X.shape[0]))        
         else:
             return self.alg.aic(X)
 
@@ -101,19 +121,11 @@ def eigen_gauss(in_path):
 
 def get_mixture_alg(alg_type):
     if(alg_type=="bayes"):
-        return BayesianGaussianMixture
+        return BayesMixture("bic")
     return BasicMixture("bic")
 
-def bic(alg, X):
-    n_effect_comp = len(np.unique(alg.predict(X)))
-    _, n_features = alg.means_.shape      
-    cov_params = n_effect_comp * n_features * (n_features + 1) / 2.
-    mean_params = n_features * n_effect_comp
-    _n_parameters=int(cov_params + mean_params + n_effect_comp - 1)
-    return (-2 * alg.score(X) * X.shape[0] +
-                _n_parameters * np.log(X.shape[0]))
 
-def good_of_fit(in_path,show=True,alg_type="basic"):
+def good_of_fit(in_path,show=True,alg_type="bayes"):
     data=dataset.read_csv(in_path)
     mixture_alg= get_mixture_alg(alg_type)
     criterion=[]
