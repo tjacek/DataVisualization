@@ -2,6 +2,22 @@ import numpy as np
 from sklearn.mixture import GaussianMixture,BayesianGaussianMixture
 import dataset,visualize
 
+class BasicMixture(object):
+    def __init__(self,criterion="bic"):
+#        self.alg=GaussianMixture
+        self.criterion=criterion
+        self.alg=None
+
+    def fit(self,X,n_components=2):
+        self.alg=GaussianMixture(n_components=n_components)
+        self.alg.fit(X)
+    
+    def compute_criterion(self,X):
+        if(self.criterion=="bic"):
+            return self.alg.bic(X)
+        else:
+            return self.alg.aic(X)
+
 class MuliGauss(object):
     def __init__(self,mean,conv):
         self.mean=mean
@@ -38,11 +54,10 @@ class MuliGauss(object):
         eig_values/= np.sum(eig_values)
         return np.round(eig_values, decimals=3)
 
-def fit_gauss(in_path,verbose=True):
+def fit_gauss(in_path):#,verbose=True):
     data=dataset.read_csv(in_path)
     mixture=GaussianMixture(n_components=data.n_cats())
     mixture.fit(data.X)
-    print(dir(mixture))
     if(verbose):
        print(f"bic:{mixture.bic(data.X)}")
        print(f"aic:{mixture.aic(data.X)}")
@@ -87,7 +102,7 @@ def eigen_gauss(in_path):
 def get_mixture_alg(alg_type):
     if(alg_type=="bayes"):
         return BayesianGaussianMixture
-    return GaussianMixture
+    return BasicMixture("bic")
 
 def bic(alg, X):
     n_effect_comp = len(np.unique(alg.predict(X)))
@@ -98,14 +113,15 @@ def bic(alg, X):
     return (-2 * alg.score(X) * X.shape[0] +
                 _n_parameters * np.log(X.shape[0]))
 
-def good_of_fit(in_path,show=True,alg_type="bayes"):
+def good_of_fit(in_path,show=True,alg_type="basic"):
     data=dataset.read_csv(in_path)
     mixture_alg= get_mixture_alg(alg_type)
     criterion=[]
     for i in range(2*data.n_cats()):
-        mixture=mixture_alg(n_components=i+1)
-        mixture.fit(data.X)
-        criterion.append( bic(mixture,data.X))
+#        mixture=mixture_alg(n_components=i+1)
+        mixture_alg.fit(data.X,n_components=i+1)
+#        raise Exception(mixture_alg.criterion(data.X))
+        criterion.append(mixture_alg.compute_criterion(data.X))
     crit_max= np.abs(np.amax(criterion))
     k=np.argmin(criterion)
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
