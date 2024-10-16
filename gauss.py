@@ -124,31 +124,27 @@ def get_mixture_alg(alg_type):
         return BayesMixture("bic")
     return BasicMixture("bic")
 
-
-def good_of_fit(in_path,show=True,alg_type="bayes"):
+def good_of_fit(in_path,alg_type="bayes",show=False):
     data=dataset.read_csv(in_path)
     mixture_alg= get_mixture_alg(alg_type)
     criterion=[]
     for i in range(2*data.n_cats()):
-#        mixture=mixture_alg(n_components=i+1)
         mixture_alg.fit(data.X,n_components=i+1)
-#        raise Exception(mixture_alg.criterion(data.X))
         criterion.append(mixture_alg.compute_criterion(data.X))
     crit_max= np.abs(np.amax(criterion))
-    k=np.argmin(criterion)
+    k=np.argmin(criterion)+1
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
-    if(show):
-        visualize.bar_plot(norm_cri)
     return norm_cri,k
 
-def point_distribution(in_path,k=5,show=True):
+def point_distribution(in_path,k=5,alg_type="bayes",show=True):
     data=dataset.read_csv(in_path)
-    mixture=GaussianMixture(n_components=k)
-    mixture.fit(data.X)
+#    mixture=GaussianMixture(n_components=k)
+    mixture=get_mixture_alg(alg_type)
+    mixture.fit(data.X,n_components=k)
     all_dist=[]
-    for i in range(data.n_cats()):
-        gauss_i=MuliGauss(mean=mixture.means_[i],
-                          conv=mixture.covariances_[i])
+    for i in range(k):#data.n_cats()):
+        gauss_i=MuliGauss(mean=mixture.alg.means_[i],
+                          conv=mixture.alg.covariances_[i])
         all_dist.append(gauss_i)
     hist=np.zeros((k,data.n_cats()))
     for i,x_i in enumerate(data.X):

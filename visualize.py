@@ -40,7 +40,6 @@ def show_distance(matrix,show=True):
     pos=mds.fit(matrix).embedding_
     plt.figure()
     for i,pos_i in enumerate( pos):
-        print(pos_i.shape)
         plt.text(pos_i[0], 
                  pos_i[1], 
                  str(i))
@@ -51,13 +50,17 @@ def show_distance(matrix,show=True):
     if(show):
         plt.show()
 
-def bar_plot(x):
+def bar_plot(x,show=True):
     for i,value in enumerate(x):
         plt.bar(i, width=0.8, 
             height=value,
             bottom=None, 
             align='center', data=None)
-    plt.show()
+    if(show==True):
+        plt.show()
+    if(type(show)==str):
+        plt.savefig(show)
+        plt.clf()
 
 def stacked_bar_plot(hist,show=True):
     n_clusters=hist.shape[0]
@@ -79,6 +82,7 @@ def stacked_bar_plot(hist,show=True):
         plt.show()
     if(type(show)==str):
         plt.savefig(show)
+        plt.clf()
 
 if __name__ == '__main__':
     a=np.ones((10,10))-np.identity(10)
