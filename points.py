@@ -15,7 +15,13 @@ class GaussExp(object):
                                          alg_type="bayes",
                                          show=False)
             visualize.bar_plot(norm_cri,f'{out_path}_crit')
-            gauss.point_distribution(in_path,k=k,show=out_path)
+            cls_gini,cat_gini=gauss.point_distribution(in_path=in_path,
+                                                       k=k,
+                                                       show=out_path)
+            print("Cluster gini")
+            print(cls_gini)
+            print("Class gini")
+            print(cat_gini)
         helper(in_path,out_path)
 
 def stability_test(in_path,n_iters=100):

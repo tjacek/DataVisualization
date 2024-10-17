@@ -136,9 +136,8 @@ def good_of_fit(in_path,alg_type="bayes",show=False):
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
     return norm_cri,k
 
-def point_distribution(in_path,k=5,alg_type="bayes",show=True):
+def gaussian_clustering(in_path,k=5,alg_type="bayes",show=True):
     data=dataset.read_csv(in_path)
-#    mixture=GaussianMixture(n_components=k)
     mixture=get_mixture_alg(alg_type)
     mixture.fit(data.X,n_components=k)
     all_dist=[]
@@ -146,13 +145,22 @@ def point_distribution(in_path,k=5,alg_type="bayes",show=True):
         gauss_i=MuliGauss(mean=mixture.alg.means_[i],
                           conv=mixture.alg.covariances_[i])
         all_dist.append(gauss_i)
-    hist=np.zeros((k,data.n_cats()))
+    cls_indices=[]
     for i,x_i in enumerate(data.X):
         prob_i=[ dist_j(x_i) for dist_j in all_dist ]
         cluster_i=np.argmax(prob_i)
-        y_i=int(data.y[i])
-        hist[cluster_i][y_i]+=1
+        cls_indices.append(cluster_i)
+    return dataset.Clustering(dataset=data,
+                              cls_indices=cls_indices)
+
+def point_distribution(in_path,k=5,alg_type="bayes",show=True):
+    cluster=gaussian_clustering(in_path=in_path,
+                                k=k,alg_type=alg_type,show=show)
+    hist=cluster.hist()
     visualize.stacked_bar_plot(hist,show=show)
+    cluster_gini=[dataset.gini_coefficient(hist_i) for hist_i in hist]
+    cat_gini=[dataset.gini_coefficient(hist_i) for hist_i in hist.T]
+    return cluster_gini,cat_gini
 
 if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")

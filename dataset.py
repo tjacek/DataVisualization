@@ -90,6 +90,13 @@ def get_class_weights(y):
         params[i]= params[i]/Z
     return params
 
+def gini_coefficient(x):
+    diffsum = 0
+    for i, xi in enumerate(x[:-1], 1):
+        diffsum += np.sum(np.abs(xi - x[i:]))
+    return diffsum / (len(x)**2 * np.mean(x))
+
+
 if __name__ == '__main__':
     data=read_csv("../uci/lymphography")
     for i in range(data.n_cats()):

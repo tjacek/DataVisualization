@@ -70,7 +70,6 @@ def stacked_bar_plot(hist,show=True):
     fig, ax = plt.subplots()
     bottom = np.zeros(n_clusters)
     for i,hist_i in hist_dict.items():
-        print(hist_i.shape)
         p = plt.bar(clusters, 
                     hist_i, 
                     width=width, 
