@@ -15,9 +15,7 @@ class GaussExp(object):
                                          alg_type="bayes",
                                          show=False)
             visualize.bar_plot(norm_cri,f'{out_path}_crit')
-#            plt.savefig(f'{out_path}_crit')
             gauss.point_distribution(in_path,k=k,show=out_path)
-#            plt.savefig(out_path)
         helper(in_path,out_path)
 
 def stability_test(in_path,n_iters=100):

@@ -56,6 +56,22 @@ class Dataset(object):
             params[i]= params[i]/Z
         return params
 
+class Clustering(object):
+    def __init__(self,dataset,cls_indices):
+        self.dataset=dataset
+        self.cls_indices=cls_indices
+
+    def n_cluster(self):
+        return int(max(self.cls_indices))+1
+
+    def hist(self):
+        hist=np.zeros((self.n_cluster(),
+                       self.dataset.n_cats()))
+        for i,clf_i in enumerate(self.cls_indices):
+            y_i=int(self.dataset.y[i])
+            hist[clf_i][y_i]+=1
+        return hist
+
 def read_csv(in_path:str):
     df=pd.read_csv(in_path,header=None)
     raw=df.to_numpy()
