@@ -109,5 +109,6 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("deep",['deep,LR','base,RF'])
+df=stat_test("clf_deep",['base,deep','base,RF'])
+df=df.sort_values(by=['balance_diff'])
 print(df)

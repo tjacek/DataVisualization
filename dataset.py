@@ -91,14 +91,27 @@ def get_class_weights(y):
     return params
 
 def gini_coefficient(x):
-    diffsum = 0
-    for i, xi in enumerate(x[:-1], 1):
-        diffsum += np.sum(np.abs(xi - x[i:]))
-    return diffsum / (len(x)**2 * np.mean(x))
+    x=x/np.sum(x)
+    return np.dot(x,x)
+#    x = sorted(x)
+#    n = len(x)
+#    s = sum(x)
+#    d = n * s
+#    G = sum(xi * (n - i) for i, xi in enumerate(x))
+#    return (d + s - 2 * G) / d
 
+#def gini_coefficient(x):
+#    x=np.sort(x)
+#    raise Exception(x)
+#    diffsum = 0
+#    for i, xi in enumerate(x[:-1], 1):
+#        diffsum += np.sum(np.abs(xi - x[i:]))
+#    return diffsum / (len(x)**2 * np.mean(x))
 
 if __name__ == '__main__':
-    data=read_csv("../uci/lymphography")
-    for i in range(data.n_cats()):
-        x_i=data.get_cat(i)
-        print(x_i.shape)
+    incomes = np.array([0,0,0,0,0,0,0,1000])#50, 50, 70, 70, 70, 90, 150, 150, 150, 150])
+    print(gini_coefficient(incomes))
+#    data=read_csv("../uci/lymphography")
+#    for i in range(data.n_cats()):
+#        x_i=data.get_cat(i)
+#        print(x_i.shape)
