@@ -73,6 +73,9 @@ class Clustering(object):
         return hist
 
 def read_csv(in_path:str):
+    if(type(in_path)==tuple):
+        X,y=in_path
+        return Dataset(X,y)
     df=pd.read_csv(in_path,header=None)
     raw=df.to_numpy()
     X,y=raw[:,:-1],raw[:,-1]

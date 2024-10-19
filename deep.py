@@ -46,33 +46,6 @@ class ClfCNN(object):
         pred= self.model.predict(X)
         return np.argmax(pred,axis=1)
 
-#class CNN(object):
-#    def __init__(self,model,params):
-#        self.model=model
-#        self.extractor=None
-#        self.params=params
-
-#    def __call__(self,data):
-#        output= self.model.get_layer("layer_2").output 
-#        extractor=Model(inputs=self.model.input,
-#                        outputs=output)
-#        new_X=extractor.predict(data.X)
-#        return dataset.Dataset(X=new_X,
-#                               y=data.y)
-
-#    def fit(self,X,y,class_weight=None):
-#        y=tf.one_hot(y,
-#                     depth=self.params['n_cats'])
-#        self.model.fit(x=X,
-#                       y=y,
-#                       epochs=self.params['n_epochs'],
-#                       class_weight=class_weight,
-#                       callbacks=get_callback())
-
-#    def predict(self,X):
-#        pred= self.model.predict(X)
-#        return np.argmax(pred,axis=1)
-
 def train(data,n_epochs=1000,report=True):
     params={"n_cats":data.n_cats(),
             'dims':data.dim(),
@@ -112,7 +85,6 @@ def make_nn(params):
 def get_callback():
     return tf.keras.callbacks.EarlyStopping(monitor='loss', 
                                             patience=5)
-
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
