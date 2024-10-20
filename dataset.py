@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
 
 class Dataset(object):
     def __init__(self,X,y=None):
@@ -35,7 +36,7 @@ class Dataset(object):
         (X_train,y_train),(X_test,y_test)=self.split(train_index,test_index)
         clf.fit(X_train,y_train)
         y_pred=clf.predict(X_test)
-        return y_pred,y_test
+        return Result(y_pred,y_test)
 
     def labeled(self):
         return not (self.y is None)
@@ -59,6 +60,18 @@ class Dataset(object):
     def selection(self,indices):
         return Dataset(X=self.X[indices],
                        y=self.y[indices])
+
+class Result(object):
+    def __init__(self,y_pred,y_true):
+        self.y_pred=y_pred
+        self.y_true=y_true
+
+    def get_acc(self):
+        return accuracy_score(self.y_pred,self.y_true)
+
+    def get_metric(self,metric):
+        return metric(self.y_pred,self.y_true)
+
 
 class Clustering(object):
     def __init__(self,dataset,cls_indices):

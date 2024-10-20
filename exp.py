@@ -3,7 +3,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
 from collections import defaultdict
-from sklearn.metrics import accuracy_score
 import pandas as pd
 import json
 import dataset,autoencoder,deep,utils
@@ -118,17 +117,6 @@ class AggrExp(Experiment):
             all_pred=np.concatenate(all_pred)
             all_test=np.concatenate(all_test)
             return all_pred,all_test
-
-class Result(object):
-    def __init__(self,y_pred,y_true):
-        self.y_pred=y_pred
-        self.y_true=y_true
-
-    def get_acc(self):
-        return accuracy_score(self.y_pred,self.y_true)
-
-    def get_metric(self,metric):
-        return metric(self.y_pred,self.y_true)
 
 def read_result(in_path:str):
     raw=list(np.load(in_path).values())[0]
