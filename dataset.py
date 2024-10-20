@@ -56,6 +56,10 @@ class Dataset(object):
             params[i]= params[i]/Z
         return params
 
+    def selection(self,indices):
+        return Dataset(X=self.X[indices],
+                       y=self.y[indices])
+
 class Clustering(object):
     def __init__(self,dataset,cls_indices):
         self.dataset=dataset
@@ -63,6 +67,14 @@ class Clustering(object):
 
     def n_cluster(self):
         return int(max(self.cls_indices))+1
+
+#    def get_cluster(self,i):
+#        return (self.cls_indices==i)
+
+#    def cluster_ineq(self):
+    def wihout_cluster(self,i):
+        ind=(self.cls_indices==i)
+        return self.selection(ind)
 
     def hist(self):
         hist=np.zeros((self.n_cluster(),
@@ -93,7 +105,7 @@ def get_class_weights(y):
         params[i]= params[i]/Z
     return params
 
-def gini_coefficient(x):
+def ineq_measure(x):
     x=x/np.sum(x)
     return np.dot(x,x)
 #    x = sorted(x)

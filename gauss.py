@@ -141,7 +141,7 @@ def gaussian_clustering(in_path,k=5,alg_type="bayes",show=True):
     mixture=get_mixture_alg(alg_type)
     mixture.fit(data.X,n_components=k)
     all_dist=[]
-    for i in range(k):#data.n_cats()):
+    for i in range(k):
         gauss_i=MuliGauss(mean=mixture.alg.means_[i],
                           conv=mixture.alg.covariances_[i])
         all_dist.append(gauss_i)
@@ -158,8 +158,8 @@ def point_distribution(in_path,k=5,alg_type="bayes",show=True):
                                 k=k,alg_type=alg_type,show=show)
     hist=cluster.hist()
     visualize.stacked_bar_plot(hist,show=show)
-    cluster_gini=[dataset.gini_coefficient(hist_i) for hist_i in hist]
-    cat_gini=[dataset.gini_coefficient(hist_i) for hist_i in hist.T]
+    cluster_gini=[dataset.ineq_measure(hist_i) for hist_i in hist]
+    cat_gini=[dataset.ineq_measure(hist_i) for hist_i in hist.T]
     return cluster_gini,cat_gini
 
 if __name__ == '__main__':
