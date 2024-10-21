@@ -24,7 +24,7 @@ class Dataset(object):
     def __call__(self,fun):
         return Dataset(X=fun(self.X),
                        y=self.y)
-
+    
     def split(self,train_index,test_index):
         X_train=self.X[train_index]
         y_train=self.y[train_index]
@@ -72,6 +72,11 @@ class Result(object):
     def get_metric(self,metric):
         return metric(self.y_pred,self.y_true)
 
+def read_result(in_path:str):
+    raw=list(np.load(in_path).values())[0]
+    y_pred,y_true=raw[0],raw[1]
+    return Result(y_pred=y_pred,
+                  y_true=y_true)
 
 class Clustering(object):
     def __init__(self,dataset,cls_indices):
@@ -121,20 +126,6 @@ def get_class_weights(y):
 def ineq_measure(x):
     x=x/np.sum(x)
     return np.dot(x,x)
-#    x = sorted(x)
-#    n = len(x)
-#    s = sum(x)
-#    d = n * s
-#    G = sum(xi * (n - i) for i, xi in enumerate(x))
-#    return (d + s - 2 * G) / d
-
-#def gini_coefficient(x):
-#    x=np.sort(x)
-#    raise Exception(x)
-#    diffsum = 0
-#    for i, xi in enumerate(x[:-1], 1):
-#        diffsum += np.sum(np.abs(xi - x[i:]))
-#    return diffsum / (len(x)**2 * np.mean(x))
 
 if __name__ == '__main__':
     incomes = np.array([0,0,0,0,0,0,0,1000])#50, 50, 70, 70, 70, 90, 150, 150, 150, 150])

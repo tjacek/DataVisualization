@@ -118,12 +118,6 @@ class AggrExp(Experiment):
             all_test=np.concatenate(all_test)
             return all_pred,all_test
 
-def read_result(in_path:str):
-    raw=list(np.load(in_path).values())[0]
-    y_pred,y_true=raw[0],raw[1]
-    return Result(y_pred=y_pred,
-                  y_true=y_true)
-
 def build_exp(in_path:str):
     conf=read_conf(in_path)
     n_splits,n_repeats=conf["n_splits"],conf["n_repeats"]

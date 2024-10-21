@@ -26,4 +26,9 @@ def compare_ensemble(in_path,deep_ens=None):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
         deep_ens=GaussEnsemble()
-    nn_k=deep,ClfCNN()
+    nn=deep.ClfCNN()
+    gen=simple_split(data,n_splits=10)
+    train,test=next(gen)
+    result_nn=data.eval(train,test,nn)
+    result_ens=data.eval(train,test,deep_ens)
+    return result_nn,result_ens
