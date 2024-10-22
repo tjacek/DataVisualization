@@ -13,12 +13,14 @@ class Ensemble(object):
         return np.argmax(votes,axis=1) 
 
 class GaussEnsemble(Ensemble):
-	def __init__(self, verbose=0):
+	def __init__(self,k, verbose=0):
 		super().__init__()
+		self.k=k
 		self.verbose=verbose 
 	
 	def fit(self,X,y):
-		clustering=gauss.gaussian_clustering((X,y))
+		clustering=gauss.gaussian_clustering((X,y),k=self.k)
+		clustering.f1_score()
 		n_cats=clustering.dataset.n_cats()
 		for k in range(clustering.n_clusters()):
 			cls_k=clustering.wihout_cluster(k)
@@ -31,11 +33,12 @@ class GaussEnsemble(Ensemble):
 def compare_ensemble(in_path,deep_ens=None,verbose=0):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
-        deep_ens=GaussEnsemble(verbose=verbose)
+        deep_ens=GaussEnsemble(k=3,verbose=verbose)
+
     nn=deep.ClfCNN(verbose=verbose)
     gen=exp.simple_split(data,n_splits=10)
     train,test=next(gen)
-    result_nn=data.eval(train,test,nn)
+#    result_nn=data.eval(train,test,nn)
     result_ens=data.eval(train,test,deep_ens)
     return result_nn,result_ens
 

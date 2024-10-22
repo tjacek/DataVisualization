@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score,classification_report
 
 class Dataset(object):
     def __init__(self,X,y=None):
@@ -72,6 +72,9 @@ class Result(object):
     def get_metric(self,metric):
         return metric(self.y_pred,self.y_true)
 
+    def report(self):
+        print(classification_report(self.y_pred,self.y_true,digits=4))
+
 def read_result(in_path:str):
     raw=list(np.load(in_path).values())[0]
     y_pred,y_true=raw[0],raw[1]
@@ -88,21 +91,38 @@ class Clustering(object):
     def n_clusters(self):
         return int(max(self.cls_indices))+1
 
-#    def get_cluster(self,i):
-#        return (self.cls_indices==i)
+    def get_cluster(self,i):
+        clusters=[[] for _ in range(self.n_clusters())]
+        for i,y_i in enumerate(self.dataset.y):
+            cls_i=self.dataset.y[i]
+            clusters[cls_i].append(y_i)
+        return clusters
 
-#    def cluster_ineq(self):
     def wihout_cluster(self,i):
         ind=(self.cls_indices==i)
         return self.dataset.selection(ind)
 
     def hist(self):
-        hist=np.zeros((self.n_cluster(),
+        hist=np.zeros((self.n_clusters(),
                        self.dataset.n_cats()))
         for i,clf_i in enumerate(self.cls_indices):
             y_i=int(self.dataset.y[i])
             hist[clf_i][y_i]+=1
         return hist
+
+    def f1_score(self):
+        hist=self.hist()
+        cats=np.argmax(hist,axis=1)
+        cats_sizes=np.sum(hist,axis=0)
+        cluster_sizes=np.sum(hist,axis=1)
+        TP=np.array([hist[i][cat_i] 
+                for i,cat_i in enumerate(cats)])
+        FP= cluster_sizes-TP
+        print(hist)
+        FN=[ cats_sizes[cats[i]]-tp_i  for i,tp_i in enumerate(TP)]
+        f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
+                   for i,tp_i in enumerate(TP)]
+        raise Exception(f1)
 
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
