@@ -22,10 +22,11 @@ class DeepFeatures(object):
         return dataset.Dataset(X=new_X,
                                y=data.y)
 class ClfCNN(object):
-    def __init__(self,n_epochs=1000,default_cats=None):
+    def __init__(self,n_epochs=1000,default_cats=None,verbose=0):
         self.n_epochs=n_epochs
         self.default_cats=default_cats
         self.model=None
+        self.verbose=verbose
 
     def fit(self,X,y):
         params={'dims': X.shape[1],
@@ -45,7 +46,8 @@ class ClfCNN(object):
                        y=y,
                        epochs=params['n_epochs'],
                        class_weight=class_weight,
-                       callbacks=get_callback())
+                       callbacks=get_callback(),
+                       verbose=self.verbose)
 
     def predict(self,X):
         pred= self.model.predict(X)
