@@ -36,7 +36,8 @@ class ClfCNN(object):
             params['n_cats']=self.default_cats   
         self.model=make_nn(params)
         self.model.compile(loss='categorical_crossentropy',
-                           optimizer='adam') 
+                           optimizer='adam',
+                           metrics=['accuracy']) 
         class_weight=dataset.get_class_weights(y)
         y=tf.one_hot(y,
                      depth=params['n_cats'])
@@ -90,8 +91,8 @@ def make_nn(params):
                  outputs=x)
 
 def get_callback():
-    return tf.keras.callbacks.EarlyStopping(monitor='loss', 
-                                            patience=5)
+    return tf.keras.callbacks.EarlyStopping(monitor='accuracy', 
+                                            patience=15)
 
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
