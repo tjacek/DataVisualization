@@ -1,5 +1,6 @@
 import os.path
 from functools import wraps
+import time
 
 def make_dir(path):
     if(not os.path.isdir(path)):
@@ -47,3 +48,13 @@ class DirFun(object):
             else:
                 args[i]=new_values[arg_i]
         return fun(*args, **kwargs)
+
+def elapsed_time(fun):
+    @wraps(fun)
+    def helper(*args, **kwargs):
+        start=time.time()
+        value=fun(*args, **kwargs)
+        end= time.time()
+        print(f"Time:{end-start:.4f}")
+        return value
+    return helper

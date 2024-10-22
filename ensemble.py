@@ -1,5 +1,5 @@
 import numpy as np
-import deep,gauss,dataset,exp
+import deep,gauss,dataset,exp,utils
 
 class Ensemble(object):
     def __init__(self):
@@ -27,6 +27,7 @@ class GaussEnsemble(Ensemble):
 			nn_k.fit(X=cls_k.X,y=cls_k.y)
 			self.clfs.append(nn_k)
 
+@utils.elapsed_time
 def compare_ensemble(in_path,deep_ens=None,verbose=0):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
@@ -41,5 +42,7 @@ def compare_ensemble(in_path,deep_ens=None,verbose=0):
 if __name__ == '__main__':
     nn,ens=compare_ensemble("uci/cleveland",
     	                    verbose=0)
-    print(nn.get_acc())
-    print(ens.get_acc())
+    nn.report()
+    ens.report()
+#    print(nn.get_acc())
+#    print(ens.get_acc())
