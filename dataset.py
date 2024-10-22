@@ -80,10 +80,12 @@ def read_result(in_path:str):
 
 class Clustering(object):
     def __init__(self,dataset,cls_indices):
+        if(type(cls_indices)==list):
+            cls_indices=np.array(cls_indices)
         self.dataset=dataset
         self.cls_indices=cls_indices
 
-    def n_cluster(self):
+    def n_clusters(self):
         return int(max(self.cls_indices))+1
 
 #    def get_cluster(self,i):
@@ -92,7 +94,7 @@ class Clustering(object):
 #    def cluster_ineq(self):
     def wihout_cluster(self,i):
         ind=(self.cls_indices==i)
-        return self.selection(ind)
+        return self.dataset.selection(ind)
 
     def hist(self):
         hist=np.zeros((self.n_cluster(),

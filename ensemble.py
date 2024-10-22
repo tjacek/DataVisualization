@@ -1,11 +1,12 @@
-import deep,gauss,dataset
+import numpy as np
+import deep,gauss,dataset,exp
 
 class Ensemble(object):
     def __init__(self):
         self.clfs=[]
 
     def predict(self,X):
-        votes=[clf_i.predict(X)
+        votes=[clf_i.predict_proba(X)
                 for clf_i in self.clfs]
         votes=np.array(votes)
         votes=np.sum(votes,axis=0)
@@ -13,12 +14,12 @@ class Ensemble(object):
 
 class GaussEnsemble(Ensemble):
 
-	def fit(X,y):
+	def fit(self,X,y):
 		clustering=gauss.gaussian_clustering((X,y))
-		n_cats=clustering.data.n_cats()
+		n_cats=clustering.dataset.n_cats()
 		for k in range(clustering.n_clusters()):
 			cls_k=clustering.wihout_cluster(k)
-			nn_k=deep,ClfCNN(default_cats=n_cats)
+			nn_k=deep.ClfCNN(default_cats=n_cats)
 			nn_k.fit(X=cls_k.X,y=cls_k.y)
 			self.clfs.append(nn_k)
 
@@ -27,8 +28,13 @@ def compare_ensemble(in_path,deep_ens=None):
     if(deep_ens is None):
         deep_ens=GaussEnsemble()
     nn=deep.ClfCNN()
-    gen=simple_split(data,n_splits=10)
+    gen=exp.simple_split(data,n_splits=10)
     train,test=next(gen)
     result_nn=data.eval(train,test,nn)
     result_ens=data.eval(train,test,deep_ens)
     return result_nn,result_ens
+
+if __name__ == '__main__':
+    nn,ens=compare_ensemble("uci/cleveland")
+    print(nn.get_acc())
+    print(ens.get_acc())

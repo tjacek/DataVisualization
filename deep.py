@@ -22,14 +22,18 @@ class DeepFeatures(object):
         return dataset.Dataset(X=new_X,
                                y=data.y)
 class ClfCNN(object):
-    def __init__(self,n_epochs=1000):
+    def __init__(self,n_epochs=1000,default_cats=None):
         self.n_epochs=n_epochs
+        self.default_cats=default_cats
         self.model=None
 
     def fit(self,X,y):
-        params={"n_cats": int(max(y))+1,
-                'dims': X.shape[1],
+        params={'dims': X.shape[1],
                 'n_epochs':self.n_epochs}
+        if(self.default_cats is None):
+            params['n_cats']= int(max(y))+1
+        else:
+            params['n_cats']=self.default_cats   
         self.model=make_nn(params)
         self.model.compile(loss='categorical_crossentropy',
                            optimizer='adam') 
@@ -45,6 +49,9 @@ class ClfCNN(object):
     def predict(self,X):
         pred= self.model.predict(X)
         return np.argmax(pred,axis=1)
+    
+    def predict_proba(self,X):
+        return self.model.predict(X)
 
 def train(data,n_epochs=1000,report=True):
     params={"n_cats":data.n_cats(),

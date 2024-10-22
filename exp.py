@@ -141,6 +141,13 @@ def build_exp(in_path:str):
     	       input_paths=input_paths,
     	       output_path=output_path)
 
+def simple_split(data,n_splits=10):    
+    rskf=RepeatedStratifiedKFold(n_repeats=1, 
+                                 n_splits=n_splits, 
+                                 random_state=0)
+    for train_index,test_index in rskf.split(data.X,data.y):
+        yield train_index,test_index
+
 def read_conf(in_path):
     with open(in_path, 'r') as file:
         data = json.load(file)
