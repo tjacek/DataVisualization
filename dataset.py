@@ -32,12 +32,15 @@ class Dataset(object):
         y_test=self.y[test_index]
         return (X_train,y_train),(X_test,y_test)        
 
-    def eval(self,train_index,test_index,clf):
+    def eval(self,train_index,test_index,clf,as_result=True):
         (X_train,y_train),(X_test,y_test)=self.split(train_index,test_index)
         clf.fit(X_train,y_train)
         y_pred=clf.predict(X_test)
-        return Result(y_pred,y_test)
-
+        if(as_result):
+            return Result(y_pred,y_test)
+        else:
+            return y_pred,y_test
+            
     def labeled(self):
         return not (self.y is None)
 

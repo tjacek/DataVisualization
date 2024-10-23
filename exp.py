@@ -88,7 +88,8 @@ class UnaggrExp(Experiment):
         def eval(self,data,clf):
             return data.eval(train_index=self.train_index,
                              test_index=self.test_index,
-                             clf=clf())
+                             clf=clf(),
+                             as_result=False)
 class AggrExp(Experiment):    
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
@@ -111,7 +112,8 @@ class AggrExp(Experiment):
             for train_t,test_t in self.indexes:
                 pred_t,test_t=data.eval(train_index=train_t,
                                         test_index=test_t,
-                                        clf=clf())
+                                        clf=clf(),
+                                        as_result=False)
                 all_pred.append(pred_t)
                 all_test.append(test_t)
             all_pred=np.concatenate(all_pred)
@@ -172,5 +174,5 @@ def get_features(feat_type):
     raise Exception(f"Unknow feature type:{feat_type}")
 
 if __name__ == '__main__':
-    exp=build_exp("json/clf.js")
+    exp=build_exp("json/clf_un.js")
     exp.save()

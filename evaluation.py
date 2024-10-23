@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from scipy import stats
 import pandas as pd
 import itertools
-import exp
+import dataset,exp
 
 class MetricDict(object):
     def __init__(self):
@@ -102,13 +102,13 @@ def read_results(in_path:str):
     for root, dir, files in os.walk(in_path):
         if(len(dir)==0):
             for file_i in files:
-                result_i=exp.read_result(f"{root}/{file_i}")
+                result_i=dataset.read_result(f"{root}/{file_i}")
                 result_dict[root].append(result_i)
     return result_dict
 
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("clf_deep",['base,deep','base,RF'])
+df=stat_test("un_clf_deep",['base,deep','base,RF'])
 df=df.sort_values(by=['balance_diff'])
 print(df)
