@@ -109,8 +109,8 @@ class Clustering(object):
             y_i=int(self.dataset.y[i])
             hist[clf_i][y_i]+=1
         return hist
-
-    def f1_score(self):
+    
+    def stats(self):
         hist=self.hist()
         cats=np.argmax(hist,axis=1)
         cats_sizes=np.sum(hist,axis=0)
@@ -118,11 +118,20 @@ class Clustering(object):
         TP=np.array([hist[i][cat_i] 
                 for i,cat_i in enumerate(cats)])
         FP= cluster_sizes-TP
-        print(hist)
         FN=[ cats_sizes[cats[i]]-tp_i  for i,tp_i in enumerate(TP)]
+        return TP,FP,FN
+    
+    def f1_score(self):
+        TP,FP,FN=self.stats()
         f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
                    for i,tp_i in enumerate(TP)]
-        raise Exception(f1)
+        return np.array(f1)
+
+    def recall(self):
+        TP,FP,FN=self.stats()
+        recall=[ tp_i/(tp_i+FN[i]) 
+                   for i,tp_i in enumerate(TP)]
+        return np.array(recall)
 
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
