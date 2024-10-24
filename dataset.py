@@ -136,6 +136,16 @@ class Clustering(object):
                    for i,tp_i in enumerate(TP)]
         return np.array(recall)
 
+class Histogram(object);
+    def __init__(self,arr):
+        self.arr=arr
+    
+    def tp(self,cats=None):
+        if(cats is None):
+            cats=np.argmax(hist,axis=1)
+        return np.array([self.arr[i][cat_i] 
+                for i,cat_i in enumerate(cats)])
+
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
         X,y=in_path
