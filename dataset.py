@@ -124,12 +124,6 @@ class Clustering(object):
         FN=[ cats_sizes[cats[i]]-tp_i  for i,tp_i in enumerate(TP)]
         return TP,FP,FN
     
-    def f1_score(self):
-        TP,FP,FN=self.stats()
-        f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
-                   for i,tp_i in enumerate(TP)]
-        return np.array(f1)
-
     def recall(self):
         TP,FP,FN=self.stats()
         recall=[ tp_i/(tp_i+FN[i]) 
@@ -145,6 +139,13 @@ class Histogram(object);
             cats=np.argmax(hist,axis=1)
         return np.array([self.arr[i][cat_i] 
                 for i,cat_i in enumerate(cats)])
+
+    def f1_score(self):
+        TP,FP,FN=self.tp(),self.fp(),self.fn()
+        f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
+                   for i,tp_i in enumerate(TP)]
+        return np.array(f1)
+
 
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
