@@ -111,25 +111,8 @@ class Clustering(object):
         for i,clf_i in enumerate(self.cls_indices):
             y_i=int(self.dataset.y[i])
             hist[clf_i][y_i]+=1
-        return hist
+        return Histogram(hist)
     
-    def stats(self):
-        hist=self.hist()
-        cats=np.argmax(hist,axis=1)
-        cats_sizes=np.sum(hist,axis=0)
-        cluster_sizes=np.sum(hist,axis=1)
-        TP=np.array([hist[i][cat_i] 
-                for i,cat_i in enumerate(cats)])
-        FP= cluster_sizes-TP
-        FN=[ cats_sizes[cats[i]]-tp_i  for i,tp_i in enumerate(TP)]
-        return TP,FP,FN
-    
-    def recall(self):
-        TP,FP,FN=self.stats()
-        recall=[ tp_i/(tp_i+FN[i]) 
-                   for i,tp_i in enumerate(TP)]
-        return np.array(recall)
-
 class Histogram(object);
     def __init__(self,arr):
         self.arr=arr
@@ -140,12 +123,36 @@ class Histogram(object);
         return np.array([self.arr[i][cat_i] 
                 for i,cat_i in enumerate(cats)])
 
+    def fp(self,tp=None):
+        if(tp is None):
+            tp=self.tp()
+        cluster_sizes=np.sum(self.arr,axis=1)
+        return cluster_sizes-tp
+
+    def fn(self,cats=None,tp=None):
+        if(cats is None):
+            cats=np.argmax(self.arr,axis=1)
+        if(tp is None):
+            tp=self.tp(cats)
+        cats_sizes=np.sum(self.arr,axis=0)
+        return [ cats_sizes[cats[i]]-tp_i  
+                 for i,tp_i in enumerate(tp)]
+    
     def f1_score(self):
-        TP,FP,FN=self.tp(),self.fp(),self.fn()
+        cats=np.argmax(self.arr,axis=1)
+        TP=self.tp(cats)
+        FP,FN=self.fp(TP),self.fn(cats,TP)
         f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
                    for i,tp_i in enumerate(TP)]
         return np.array(f1)
-
+    
+    def recall(self):
+        cats=np.argmax(hist,axis=1)
+        TP=self.tp(cats)
+        FP,FN=self.fp(TP),self.fn(cats,TP)
+        recall=[ tp_i/(tp_i+FN[i]) 
+                   for i,tp_i in enumerate(TP)]
+        return np.array(recall)
 
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
