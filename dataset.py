@@ -84,76 +84,6 @@ def read_result(in_path:str):
     return Result(y_pred=y_pred,
                   y_true=y_true)
 
-class Clustering(object):
-    def __init__(self,dataset,cls_indices):
-        if(type(cls_indices)==list):
-            cls_indices=np.array(cls_indices)
-        self.dataset=dataset
-        self.cls_indices=cls_indices
-
-    def n_clusters(self):
-        return int(max(self.cls_indices))+1
-
-    def get_cluster(self,i):
-        clusters=[[] for _ in range(self.n_clusters())]
-        for i,y_i in enumerate(self.dataset.y):
-            cls_i=self.dataset.y[i]
-            clusters[cls_i].append(y_i)
-        return clusters
-
-    def wihout_cluster(self,i):
-        ind=(self.cls_indices==i)
-        return self.dataset.selection(ind)
-
-    def hist(self):
-        hist=np.zeros((self.n_clusters(),
-                       self.dataset.n_cats()))
-        for i,clf_i in enumerate(self.cls_indices):
-            y_i=int(self.dataset.y[i])
-            hist[clf_i][y_i]+=1
-        return Histogram(hist)
-    
-class Histogram(object);
-    def __init__(self,arr):
-        self.arr=arr
-    
-    def tp(self,cats=None):
-        if(cats is None):
-            cats=np.argmax(hist,axis=1)
-        return np.array([self.arr[i][cat_i] 
-                for i,cat_i in enumerate(cats)])
-
-    def fp(self,tp=None):
-        if(tp is None):
-            tp=self.tp()
-        cluster_sizes=np.sum(self.arr,axis=1)
-        return cluster_sizes-tp
-
-    def fn(self,cats=None,tp=None):
-        if(cats is None):
-            cats=np.argmax(self.arr,axis=1)
-        if(tp is None):
-            tp=self.tp(cats)
-        cats_sizes=np.sum(self.arr,axis=0)
-        return [ cats_sizes[cats[i]]-tp_i  
-                 for i,tp_i in enumerate(tp)]
-    
-    def f1_score(self):
-        cats=np.argmax(self.arr,axis=1)
-        TP=self.tp(cats)
-        FP,FN=self.fp(TP),self.fn(cats,TP)
-        f1=[ (2.0*tp_i)/(2*tp_i+FP[i]+FN[i]) 
-                   for i,tp_i in enumerate(TP)]
-        return np.array(f1)
-    
-    def recall(self):
-        cats=np.argmax(hist,axis=1)
-        TP=self.tp(cats)
-        FP,FN=self.fp(TP),self.fn(cats,TP)
-        recall=[ tp_i/(tp_i+FN[i]) 
-                   for i,tp_i in enumerate(TP)]
-        return np.array(recall)
-
 def read_csv(in_path:str):
     if(type(in_path)==tuple):
         X,y=in_path
@@ -174,10 +104,6 @@ def get_class_weights(y):
     for i in params:
         params[i]= params[i]/Z
     return params
-
-def ineq_measure(x):
-    x=x/np.sum(x)
-    return np.dot(x,x)
 
 if __name__ == '__main__':
     incomes = np.array([0,0,0,0,0,0,0,1000])#50, 50, 70, 70, 70, 90, 150, 150, 150, 150])

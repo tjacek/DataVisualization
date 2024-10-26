@@ -20,7 +20,8 @@ class GaussEnsemble(Ensemble):
 	
 	def fit(self,X,y):
 		clustering=gauss.gaussian_clustering((X,y),k=self.k)
-		raise Exception(clustering.recall())
+		hist=clustering.hist()
+		raise Exception(hist.recall())
 		n_cats=clustering.dataset.n_cats()
 		for k in range(clustering.n_clusters()):
 			cls_k=clustering.wihout_cluster(k)
