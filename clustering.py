@@ -62,13 +62,24 @@ class Histogram(object):
                    for i,tp_i in enumerate(TP)]
         return np.array(f1)
     
-    def recall(self):
-        cats=np.argmax(self.arr,axis=1)
-        TP=self.tp(cats)
-        FP,FN=self.fp(TP),self.fn(cats,TP)
-        recall=[ tp_i/(tp_i+FN[i]) 
-                   for i,tp_i in enumerate(TP)]
-        return np.array(recall)
+    def recall_matrix(self):
+#        cats=np.argmax(self.arr,axis=1)
+        n_clusters,n_cats=self.arr.shape  
+        recall_matrix=[]
+        for i in range(n_cats):
+            cat_i=i*np.ones(n_clusters)
+            cat_i=cat_i.astype(int)
+#            raise Exception(cat_i)
+            TP=self.tp(cat_i)
+            FP,FN=self.fp(TP),self.fn(cat_i,TP)
+            recall_i=[ tp_j/(tp_j+FN[j]) 
+                       for j,tp_j in enumerate(TP)]
+            recall_matrix.append(recall_i)
+#        TP=self.tp(cats)
+#        FP,FN=self.fp(TP),self.fn(cats,TP)
+#        recall=[ tp_i/(tp_i+FN[i]) 
+#                   for i,tp_i in enumerate(TP)]
+        return np.array(recall_matrix)
 
 def ineq_measure(x):
     x=x/np.sum(x)
