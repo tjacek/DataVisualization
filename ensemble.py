@@ -79,3 +79,5 @@ if __name__ == '__main__':
     	                    verbose=0)
     print(nn.get_acc())
     print(ens.get_acc())
+    print(nn.get_balanced())
+    print(ens.get_balanced())

@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
-from sklearn.metrics import accuracy_score,classification_report
+from sklearn.metrics import accuracy_score,classification_report,balanced_accuracy_score
 
 class Dataset(object):
     def __init__(self,X,y=None):
@@ -71,6 +71,9 @@ class Result(object):
 
     def get_acc(self):
         return accuracy_score(self.y_pred,self.y_true)
+
+    def get_balanced(self):
+        return balanced_accuracy_score(self.y_pred,self.y_true)
 
     def get_metric(self,metric):
         return metric(self.y_pred,self.y_true)
