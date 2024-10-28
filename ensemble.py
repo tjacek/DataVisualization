@@ -15,6 +15,12 @@ class Ensemble(object):
     def reset(self):
         self.clfs=[]	
 
+class ClassEnsemble(Ensemble):
+    def fit(self,X,y):
+    	weight_dict=dataset.get_class_weights(y)
+    	n_cats=len(weight_dict)
+    	raise Exception(weight_dict)
+
 class GaussEnsemble(Ensemble):
 	def __init__(self,k,full=True, verbose=0):
 		super().__init__()
@@ -51,8 +57,8 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
         print("OK")
         deep_ens.reset()
         nn=deep.ClfCNN(verbose=verbose)
-        result_nn=data.eval(train,test,nn)
         result_ens=data.eval(train,test,deep_ens)
+        result_nn=data.eval(train,test,nn)
         return result_nn,result_ens
     gen=exp.simple_split(data,n_splits=10)
     if(single):
@@ -66,7 +72,9 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
         return result_nn,result_ens
 
 if __name__ == '__main__':
+    deep_ens=None#ClassEnsemble()
     nn,ens=compare_ensemble("uci/cleveland",
+    	                    deep_ens=deep_ens,
     	                    single=False,
     	                    verbose=0)
     print(nn.get_acc())

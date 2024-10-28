@@ -98,8 +98,11 @@ def get_class_weights(y):
     params={}
     n_cats=int(max(y))+1
     for i in range(n_cats):
-        size_i=(y==i).shape[0]
-        params[i]= 1.0/size_i
+        size_i=sum((y==i).astype(int))
+        if(size_i>0):
+            params[i]= 1.0/size_i
+        else:
+            params[i]=0
     Z= sum(list(params.values()))
     for i in params:
         params[i]= params[i]/Z
