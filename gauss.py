@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture,BayesianGaussianMixture
-import dataset,visualize
+import clustering,dataset,visualize
 
 class BasicMixture(object):
     def __init__(self,criterion="bic"):
@@ -150,7 +150,7 @@ def gaussian_clustering(in_path,k=5,alg_type="bayes",show=True):
         prob_i=[ dist_j(x_i) for dist_j in all_dist ]
         cluster_i=np.argmax(prob_i)
         cls_indices.append(cluster_i)
-    return dataset.Clustering(dataset=data,
+    return clustering.Clustering(dataset=data,
                               cls_indices=cls_indices)
 
 def point_distribution(in_path,k=5,alg_type="bayes",show=True):

@@ -22,9 +22,13 @@ class DeepFeatures(object):
         return dataset.Dataset(X=new_X,
                                y=data.y)
 class ClfCNN(object):
-    def __init__(self,n_epochs=1000,default_cats=None,verbose=0):
+    def __init__(self,n_epochs=1000,
+                      default_cats=None,
+                      default_weights=None,
+                      verbose=0):
         self.n_epochs=n_epochs
         self.default_cats=default_cats
+        self.default_weights=default_weights
         self.model=None
         self.verbose=verbose
 
@@ -39,13 +43,14 @@ class ClfCNN(object):
         self.model.compile(loss='categorical_crossentropy',
                            optimizer='adam',
                            metrics=['accuracy']) 
-        class_weight=dataset.get_class_weights(y)
+        if(self.default_weights is None):
+            self.default_weights=dataset.get_class_weights(y)
         y=tf.one_hot(y,
                      depth=params['n_cats'])
         self.model.fit(x=X,
                        y=y,
                        epochs=params['n_epochs'],
-                       class_weight=class_weight,
+                       class_weight=self.default_weights,
                        callbacks=get_callback(),
                        verbose=self.verbose)
 

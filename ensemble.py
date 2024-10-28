@@ -2,8 +2,10 @@ import numpy as np
 import deep,gauss,dataset,exp,utils
 
 class Ensemble(object):
-    def __init__(self):
+    def __init__(self,full=True, verbose=0):
         self.clfs=[]
+        self.full=full
+        self.verbose=verbose
 
     def __len__(self):
         return len(self.clfs)	
@@ -27,15 +29,25 @@ class ClassEnsemble(Ensemble):
         for cat_i,weight_i in size_dict.items():
             if(weight_i<avg_size):
                 dict_i=dataset.WeightDict(weight_dict.copy())
-                dict_i[cat_i]= dict_i[cat_i]*(n_cats-1))
-        raise Exception(weight_dict)
+                dict_i[cat_i]= dict_i[cat_i]*(n_cats/2)
+                nn_k=deep.ClfCNN(default_cats=n_cats,
+								 default_weights=dict_i,
+								 verbose=self.verbose)
+                nn_k.fit(X=X,y=y)
+                self.clfs.append(nn_k)
+        if(self.full):
+            nn=deep.ClfCNN(default_cats=n_cats,
+                           verbose=self.verbose)
+            nn.fit(X=X,y=y)
+            self.clfs.append(nn)
+        return self
 
 class GaussEnsemble(Ensemble):
 	def __init__(self,k,full=True, verbose=0):
-		super().__init__()
+		super().__init__(full=full,
+			             verbose=verbose)
 		self.k=k
-		self.full=full
-		self.verbose=verbose 
+
 	
 	def fit(self,X,y):
 		clustering=gauss.gaussian_clustering((X,y),k=self.k)
@@ -84,8 +96,10 @@ if __name__ == '__main__':
     deep_ens=ClassEnsemble()
     nn,ens=compare_ensemble("uci/cleveland",
     	                    deep_ens=deep_ens,
-    	                    single=True,
+    	                    single=False,
     	                    verbose=0)
+    nn.report()
+    ens.report()
     print(nn.get_acc())
     print(ens.get_acc())
     print(nn.get_balanced())
