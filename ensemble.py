@@ -5,6 +5,9 @@ class Ensemble(object):
     def __init__(self):
         self.clfs=[]
 
+    def __len__(self):
+        return len(self.clfs)	
+
     def predict(self,X):
         votes=[clf_i.predict_proba(X)
                 for clf_i in self.clfs]
@@ -17,9 +20,15 @@ class Ensemble(object):
 
 class ClassEnsemble(Ensemble):
     def fit(self,X,y):
-    	weight_dict=dataset.get_class_weights(y)
-    	n_cats=len(weight_dict)
-    	raise Exception(weight_dict)
+        weight_dict=dataset.get_class_weights(y)
+        size_dict=weight_dict.size_dict()
+        n_cats=len(weight_dict)
+        avg_size=1.0/n_cats
+        for cat_i,weight_i in size_dict.items():
+            if(weight_i<avg_size):
+                dict_i=dataset.WeightDict(weight_dict.copy())
+                dict_i[cat_i]= dict_i[cat_i]*(n_cats-1))
+        raise Exception(weight_dict)
 
 class GaussEnsemble(Ensemble):
 	def __init__(self,k,full=True, verbose=0):
@@ -54,11 +63,11 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
     if(deep_ens is None):
         deep_ens=GaussEnsemble(k=3,verbose=verbose)
     def helper(train,test):
-        print("OK")
         deep_ens.reset()
         nn=deep.ClfCNN(verbose=verbose)
         result_ens=data.eval(train,test,deep_ens)
         result_nn=data.eval(train,test,nn)
+        print(f"n_clf{len(deep_ens)}")
         return result_nn,result_ens
     gen=exp.simple_split(data,n_splits=10)
     if(single):
@@ -72,10 +81,10 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
         return result_nn,result_ens
 
 if __name__ == '__main__':
-    deep_ens=None#ClassEnsemble()
+    deep_ens=ClassEnsemble()
     nn,ens=compare_ensemble("uci/cleveland",
     	                    deep_ens=deep_ens,
-    	                    single=False,
+    	                    single=True,
     	                    verbose=0)
     print(nn.get_acc())
     print(ens.get_acc())

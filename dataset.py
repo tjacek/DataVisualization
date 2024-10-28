@@ -81,6 +81,23 @@ class Result(object):
     def report(self):
         print(classification_report(self.y_pred,self.y_true,digits=4))
 
+class WeightDict(dict):
+    def __init__(self, arg=[]):
+        super(WeightDict, self).__init__(arg)
+
+    def Z(self):
+        return sum(list(self.values()))
+
+    def norm(self):
+        Z=self.Z()
+        for i in self:
+            self[i]= self[i]/Z
+        return self
+    
+    def size_dict(self):
+        d={ i:(1.0/w_i) for i,w_i in self.items()}
+        return  WeightDict(d).norm()
+
 def read_result(in_path:str):
     raw=list(np.load(in_path).values())[0]
     y_pred,y_true=raw[0],raw[1]
@@ -98,7 +115,7 @@ def read_csv(in_path:str):
     return Dataset(X,y)
 
 def get_class_weights(y):
-    params={}
+    params=WeightDict() #{}
     n_cats=int(max(y))+1
     for i in range(n_cats):
         size_i=sum((y==i).astype(int))
@@ -106,10 +123,10 @@ def get_class_weights(y):
             params[i]= 1.0/size_i
         else:
             params[i]=0
-    Z= sum(list(params.values()))
-    for i in params:
-        params[i]= params[i]/Z
-    return params
+#    Z= sum(list(params.values()))
+#    for i in params:
+#        params[i]= params[i]/Z
+    return params.norm()
 
 def unify_results(partial_results):
     pairs=[ (result_i.y_pred,result_i.y_true) 
