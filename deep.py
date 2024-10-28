@@ -50,11 +50,11 @@ class ClfCNN(object):
                        verbose=self.verbose)
 
     def predict(self,X):
-        pred= self.model.predict(X)
+        pred= self.model.predict(X,verbose=self.verbose)
         return np.argmax(pred,axis=1)
     
     def predict_proba(self,X):
-        return self.model.predict(X)
+        return self.model.predict(X,verbose=self.verbose)
 
 def train(data,n_epochs=1000,report=True):
     params={"n_cats":data.n_cats(),
