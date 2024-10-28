@@ -10,7 +10,10 @@ class Ensemble(object):
                 for clf_i in self.clfs]
         votes=np.array(votes)
         votes=np.sum(votes,axis=0)
-        return np.argmax(votes,axis=1) 
+        return np.argmax(votes,axis=1)
+
+    def reset(self):
+        self.clfs=[]	
 
 class GaussEnsemble(Ensemble):
 	def __init__(self,k,full=True, verbose=0):
@@ -40,22 +43,31 @@ class GaussEnsemble(Ensemble):
 			self.clfs.append(nn)
 
 @utils.elapsed_time
-def compare_ensemble(in_path,deep_ens=None,verbose=0):
+def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
         deep_ens=GaussEnsemble(k=3,verbose=verbose)
-
-    nn=deep.ClfCNN(verbose=verbose)
+    def helper(train,test):
+        print("OK")
+        deep_ens.reset()
+        nn=deep.ClfCNN(verbose=verbose)
+        result_nn=data.eval(train,test,nn)
+        result_ens=data.eval(train,test,deep_ens)
+        return result_nn,result_ens
     gen=exp.simple_split(data,n_splits=10)
-    train,test=next(gen)
-    result_nn=data.eval(train,test,nn)
-    result_ens=data.eval(train,test,deep_ens)
-    return result_nn,result_ens
+    if(single):
+        train,test=next(gen)
+        return helper(train,test)
+    else:
+        results=[helper(train_i,test_i) for train_i,test_i in gen]
+        partial_nn,partial_ens=list(zip(*results))
+        result_nn=dataset.unify_results(partial_nn)
+        result_ens=dataset.unify_results(partial_ens)
+        return result_nn,result_ens
 
 if __name__ == '__main__':
     nn,ens=compare_ensemble("uci/cleveland",
+    	                    single=False,
     	                    verbose=0)
-#    nn.report()
-#    ens.report()
     print(nn.get_acc())
     print(ens.get_acc())

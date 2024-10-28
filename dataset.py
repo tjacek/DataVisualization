@@ -105,10 +105,16 @@ def get_class_weights(y):
         params[i]= params[i]/Z
     return params
 
+def unify_results(partial_results):
+    pairs=[ (result_i.y_pred,result_i.y_true) 
+            for result_i in partial_results]
+    y_pred,y_true=list(zip(*pairs))
+    y_pred=np.concatenate(y_pred)
+    y_true=np.concatenate(y_true)
+    return Result(y_pred,y_true)
+
 if __name__ == '__main__':
-    incomes = np.array([0,0,0,0,0,0,0,1000])#50, 50, 70, 70, 70, 90, 150, 150, 150, 150])
-    print(gini_coefficient(incomes))
-#    data=read_csv("../uci/lymphography")
-#    for i in range(data.n_cats()):
-#        x_i=data.get_cat(i)
-#        print(x_i.shape)
+    data=read_csv("../uci/lymphography")
+    for i in range(data.n_cats()):
+        x_i=data.get_cat(i)
+        print(x_i.shape)
