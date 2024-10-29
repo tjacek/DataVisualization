@@ -55,7 +55,7 @@ class GaussEnsemble(Ensemble):
 #		print(hist.arr)
 		recall=hist.recall_matrix()
 		n_cats=clustering.dataset.n_cats()
-		for k,recall_k in enumerate(recall.T):#clustering.n_clusters()):
+		for k,recall_k in enumerate(recall.T):
 			if(np.all(recall_k<0.5)):
 				cls_k=clustering.wihout_cluster(k)
 				nn_k=deep.ClfCNN(default_cats=n_cats,
@@ -68,6 +68,10 @@ class GaussEnsemble(Ensemble):
 			nn.fit(X=clustering.dataset.X,
 				   y=clustering.dataset.y)
 			self.clfs.append(nn)
+
+class GEnsembleFactory(object):
+    def __call__(self,data):
+        	
 
 @utils.elapsed_time
 def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
