@@ -81,6 +81,10 @@ class Result(object):
     def report(self):
         print(classification_report(self.y_pred,self.y_true,digits=4))
 
+    def save(self,out_path):
+        y_pair=np.array([self.y_pred,self.y_true])
+        np.savez(out_path,y_pair)
+
 class WeightDict(dict):
     def __init__(self, arg=[]):
         super(WeightDict, self).__init__(arg)
