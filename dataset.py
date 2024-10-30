@@ -112,6 +112,8 @@ def read_csv(in_path:str):
     if(type(in_path)==tuple):
         X,y=in_path
         return Dataset(X,y)
+    if(type(in_path)!=str):
+        return in_path
     df=pd.read_csv(in_path,header=None)
     raw=df.to_numpy()
     X,y=raw[:,:-1],raw[:,-1]

@@ -2,75 +2,78 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
-from collections import defaultdict
-import pandas as pd
 import json
-import dataset,autoencoder,deep,utils
+import dataset,autoencoder,deep,ensemble,utils
 
-class Experiment(object):
+class ExpParams(object):
     def __init__(self,
-    	         feats:dict,
-    	         clfs:dict,
-    	         n_splits:int,
-    	         n_repeats:int,
-    	         input_paths:list,
-    	         output_path:str):
-    	self.feats=feats
-    	self.clfs=clfs
-    	self.n_splits=n_splits
-    	self.n_repeats=n_repeats
-    	self.input_paths=input_paths
-    	self.output_path=output_path
-    
-    def iter(self):
-        for path in self.input_paths:
+                 feats:dict,
+                 clfs:dict,
+                 n_splits:int,
+                 n_repeats:int,
+                 input_paths:list,
+                 output_path:str):
+        self.feats=feats
+        self.clfs=clfs
+        self.n_splits=n_splits
+        self.n_repeats=n_repeats
+        self.input_paths=input_paths
+        self.output_path=output_path
+
+class Exp(object):
+    def __init__(self,params,split_protocol=None):
+        if(split_protocol is None):
+             split_protocol=UnaggrSplit(n_splits=10,
+                                        n_repeats=10)
+        self.params=params
+        self.split_protocol=split_protocol	
+
+    def iter(self,exp_params):
+        protocol=self.split_protocol(exp_params.n_splits,
+    		                          exp_params.n_repeats)
+        clf_iterator=get_clf_iterator(exp_params)
+        for path in exp_params.input_paths:
             data_id=path.split('/')[-1]
             data=dataset.read_csv(path)
-            splits=self.get_split(data)
-            for feat_type_i,feat_i in self.feats.items():
-                data_i=feat_i(data)
-                for clf_type_j,clf_j in self.clfs.items(): 
+            splits=protocol.get_split(data)
+            for feat_type_i in exp_params.feats:
+                 feat_i=get_features(feat_type_i)
+                 data_i=feat_i(data)
+                 for clf_type_j,clf_j in clf_iterator(data_i): 
+                    desc=(data_id,feat_type_i,clf_type_j)
                     for split_k in splits:
-                        y_pair=split_k.eval(data_i,clf_j)
-                        yield data_id,feat_type_i,clf_type_j,y_pair
+                        result=split_k.eval(data_i,clf_j)    
+                        yield desc,result
+    
+    def save(self,params=None):
+        if(params is None):
+            params=self.params
+        for i,(desc_i,result_i) in enumerate(self.iter(params)):
+            out_i=prepare_path(params.output_path,desc_i)
+            out_i=f"{out_i}/{i}"
+            print(out_i)
+            result_i.save(out_i)
 
-    def to_df(self):
-        result_dict=defaultdict(lambda :[])
-        for data,feat_type,clf_type,y_pair in self.iter():
-            id_i=f'{data},{feat_type},{clf_type}'
-            result_dict[id_i].append(Result(*y_pair))
-        lines=[]
-        for id_i,results in result_dict.items():
-            line_i=id_i.split(",")
-            acc=[result_j.get_acc() for result_j in results]
-            line_i.append(np.mean(acc))
-            line_i.append(np.std(acc))
-            lines.append(line_i)
-        df=pd.DataFrame.from_records(lines)
-        return df
+def get_clf_iterator(params):
+    clfs,data_clfs={},{}
+    for clf_type in params.clfs:
+        is_data,clf=get_clf(clf_type)
+        if(is_data):
+            data_clfs[clf_type]=clf
+        else:
+            clfs[clf_type]=clf
+    def helper(data):
+        for clf_type_i,clf_i in clfs.items():
+            yield clf_type_i,clf_i
+        for clf_type_i,clf_i in data_clfs.items():
+            yield clf_type_i,clf_i(data) 
+    return helper
 
-    def save(self):
-        self.prepare_dirs()
-        for i,result_i in enumerate(self.iter()):
-            data,feat,clf,y_pair=result_i
-            y_pair=np.array(y_pair)
-            out_i=f"{self.output_path}/{data}/{feat}/{clf}/{i}"
-            np.savez(out_i,y_pair)
+class UnaggrSplit(object):
+    def __init__(self,n_splits,n_repeats):
+        self.n_splits=n_splits
+        self.n_repeats=n_repeats
 
-    def prepare_dirs(self):
-        utils.make_dir(self.output_path)
-        for in_path in self.input_paths:
-            data_id=in_path.split('/')[-1]
-            data_path=f"{self.output_path}/{data_id}"
-            utils.make_dir(data_path)
-            for feat_type_j in self.feats:
-                feat_path=f"{data_path}/{feat_type_j}"
-                utils.make_dir(feat_path)
-                for clf_type_k in self.clfs:
-                    clf_path=f"{feat_path}/{clf_type_k}"
-                    utils.make_dir(clf_path)
-
-class UnaggrExp(Experiment):    
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                      n_splits=self.n_splits, 
@@ -89,8 +92,13 @@ class UnaggrExp(Experiment):
             return data.eval(train_index=self.train_index,
                              test_index=self.test_index,
                              clf=clf(),
-                             as_result=False)
-class AggrExp(Experiment):    
+                             as_result=True)
+
+class AggrSplit(object):
+    def __init__(self,n_splits,n_repeats):
+        self.n_splits=n_splits
+        self.n_repeats=n_repeats
+
     def get_split(self,data):
         rskf=RepeatedStratifiedKFold(n_repeats=self.n_repeats, 
                                        n_splits=self.n_splits, 
@@ -118,50 +126,17 @@ class AggrExp(Experiment):
                 all_test.append(test_t)
             all_pred=np.concatenate(all_pred)
             all_test=np.concatenate(all_test)
-            return all_pred,all_test
-
-def build_exp(in_path:str):
-    conf=read_conf(in_path)
-    n_splits,n_repeats=conf["n_splits"],conf["n_repeats"]
-    clfs={ clf_type:get_clf(clf_type) for clf_type in conf["clfs"]}
-    feats={ feat_type:get_features(feat_type) for feat_type in conf["feats"]}
-    if("data" in conf):
-        data_dir=conf["data_dir"]
-        input_paths=[ f"{data_dir}/{path_i}"
-                       for path_i in conf["data"]]
-    else:
-        input_paths=utils.top_files(conf["data_dir"])
-    output_path=conf["output_path"]    
-    if(conf["aggr"]):
-        Exp=AggrExp
-    else:
-        Exp=UnaggrExp
-    return Exp(feats=feats,
-    	       clfs=clfs,
-    	       n_splits=n_splits,
-    	       n_repeats=n_repeats,
-    	       input_paths=input_paths,
-    	       output_path=output_path)
-
-def simple_split(data,n_splits=10):    
-    rskf=RepeatedStratifiedKFold(n_repeats=1, 
-                                 n_splits=n_splits, 
-                                 random_state=0)
-    for train_index,test_index in rskf.split(data.X,data.y):
-        yield train_index,test_index
-
-def read_conf(in_path):
-    with open(in_path, 'r') as file:
-        data = json.load(file)
-        return data
+            return dataset.Result(all_pred,all_test)
 
 def get_clf(clf_type):
-    if(clf_type=="RF"):	
-        return lambda : RandomForestClassifier(class_weight="balanced")#_subsample")
+    if(clf_type=="RF"): 
+        return False,lambda : RandomForestClassifier(class_weight="balanced")#_subsample")
     if(clf_type=="LR"):
-        return lambda : LogisticRegression(solver='liblinear')
+        return False,lambda : LogisticRegression(solver='liblinear')
     if(clf_type=="deep"):
-        return lambda : deep.ClfCNN()
+        return False,lambda : deep.ClfCNN()
+    if(clf_type=="gauss_ens"):
+        return True,ensemble.GEnsembleFactory
     raise Exception(f"Unknow clf type:{clf_type}")
 
 def get_features(feat_type):
@@ -173,6 +148,41 @@ def get_features(feat_type):
         return deep.DeepFeatures()
     raise Exception(f"Unknow feature type:{feat_type}")
 
+def prepare_path(out_path,desc):
+    out_i=out_path
+    for desc_i in desc:
+        utils.make_dir(out_i)
+        out_i=f'{out_i}/{desc_i}'
+    utils.make_dir(out_i)
+    return out_i
+
+def read_conf(in_path):
+    with open(in_path, 'r') as file:
+        data = json.load(file)
+        return data
+
+def build_exp(in_path:str):
+    conf=read_conf(in_path)
+    if("data" in conf):
+        data_dir=conf["data_dir"]
+        input_paths=[ f"{data_dir}/{path_i}"
+                       for path_i in conf["data"]]
+    else:
+        input_paths=utils.top_files(conf["data_dir"])
+    params=ExpParams(feats=conf["feats"],
+                     clfs=conf["clfs"],
+                     n_splits=conf["n_splits"],
+                     n_repeats=conf["n_repeats"],
+                     input_paths=input_paths,
+                     output_path=conf["output_path"] 
+                    )  
+    if(conf["aggr"]):
+        split=AggrSplit
+    else:
+        split=UnaggrSplit
+    return Exp(params=params,
+               split_protocol=split)
+
 if __name__ == '__main__':
-    exp=build_exp("json/clf_un.js")
+    exp=build_exp("json/deep.js")
     exp.save()
