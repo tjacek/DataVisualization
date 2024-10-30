@@ -5,38 +5,31 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 import json
 import dataset,autoencoder,deep,ensemble,utils
 
-class ExpParams(object):
+class Exp(object):
     def __init__(self,
-                 feats:dict,
-                 clfs:dict,
+                 feats:list,
+                 clfs:list,
                  n_splits:int,
                  n_repeats:int,
+                 aggr:bool,
                  input_paths:list,
                  output_path:str):
         self.feats=feats
         self.clfs=clfs
         self.n_splits=n_splits
         self.n_repeats=n_repeats
+        self.aggr=aggr
         self.input_paths=input_paths
         self.output_path=output_path
 
-class Exp(object):
-    def __init__(self,params,split_protocol=None):
-        if(split_protocol is None):
-             split_protocol=UnaggrSplit(n_splits=10,
-                                        n_repeats=10)
-        self.params=params
-        self.split_protocol=split_protocol	
-
-    def iter(self,exp_params):
-        protocol=self.split_protocol(exp_params.n_splits,
-    		                          exp_params.n_repeats)
-        clf_iterator=get_clf_iterator(exp_params)
-        for path in exp_params.input_paths:
+    def iter(self):
+        protocol=self.get_protocol()
+        clf_iterator=self.get_clf_iterator()
+        for path in self.input_paths:
             data_id=path.split('/')[-1]
             data=dataset.read_csv(path)
             splits=protocol.get_split(data)
-            for feat_type_i in exp_params.feats:
+            for feat_type_i in self.feats:
                  feat_i=get_features(feat_type_i)
                  data_i=feat_i(data)
                  for clf_type_j,clf_j in clf_iterator(data_i): 
@@ -45,29 +38,33 @@ class Exp(object):
                         result=split_k.eval(data_i,clf_j)    
                         yield desc,result
     
-    def save(self,params=None):
-        if(params is None):
-            params=self.params
-        for i,(desc_i,result_i) in enumerate(self.iter(params)):
-            out_i=prepare_path(params.output_path,desc_i)
+    def save(self):
+        for i,(desc_i,result_i) in enumerate(self.iter()):
+            out_i=prepare_path(self.output_path,desc_i)
             out_i=f"{out_i}/{i}"
             print(out_i)
             result_i.save(out_i)
 
-def get_clf_iterator(params):
-    clfs,data_clfs={},{}
-    for clf_type in params.clfs:
-        is_data,clf=get_clf(clf_type)
-        if(is_data):
-            data_clfs[clf_type]=clf
+    def get_protocol(self):
+        if(self.aggr):
+             return AggrSplit(self.n_splits,self.n_repeats)
         else:
-            clfs[clf_type]=clf
-    def helper(data):
-        for clf_type_i,clf_i in clfs.items():
-            yield clf_type_i,clf_i
-        for clf_type_i,clf_i in data_clfs.items():
-            yield clf_type_i,clf_i(data) 
-    return helper
+             return UnaggrSplit(self.n_splits,self.n_repeats)
+
+    def get_clf_iterator(self):
+        clfs,data_clfs={},{}
+        for clf_type in self.clfs:
+            is_data,clf=get_clf(clf_type)
+            if(is_data):
+                data_clfs[clf_type]=clf
+            else:
+                clfs[clf_type]=clf
+        def helper(data):
+            for clf_type_i,clf_i in clfs.items():
+                yield clf_type_i,clf_i
+            for clf_type_i,clf_i in data_clfs.items():
+                yield clf_type_i,clf_i(data) 
+        return helper
 
 class UnaggrSplit(object):
     def __init__(self,n_splits,n_repeats):
@@ -169,19 +166,14 @@ def build_exp(in_path:str):
                        for path_i in conf["data"]]
     else:
         input_paths=utils.top_files(conf["data_dir"])
-    params=ExpParams(feats=conf["feats"],
-                     clfs=conf["clfs"],
-                     n_splits=conf["n_splits"],
-                     n_repeats=conf["n_repeats"],
-                     input_paths=input_paths,
-                     output_path=conf["output_path"] 
-                    )  
-    if(conf["aggr"]):
-        split=AggrSplit
-    else:
-        split=UnaggrSplit
-    return Exp(params=params,
-               split_protocol=split)
+    return Exp(feats=conf["feats"],
+               clfs=conf["clfs"],
+               n_splits=conf["n_splits"],
+               n_repeats=conf["n_repeats"],
+               aggr=conf["aggr"],
+               input_paths=input_paths,
+               output_path=conf["output_path"] 
+            ) 
 
 if __name__ == '__main__':
     exp=build_exp("json/deep.js")

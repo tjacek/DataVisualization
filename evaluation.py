@@ -76,7 +76,7 @@ def stat_test(in_path,query=None):
                 pvalue=stats.ttest_ind(x_metric,y_metric,
                                        equal_var=False)[1]
                 diff=np.mean(x_metric)-np.mean(y_metric)
-                line+=[diff,pvalue,pvalue<0.5]
+                line+=[diff,pvalue,pvalue<0.05]
                 
             lines.append(line)
     df=pd.DataFrame.from_records(lines,
@@ -109,6 +109,6 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("un_clf_deep",['base,deep','base,RF'])
+df=stat_test("deep",['base,gauss_ens','base,RF'])
 df=df.sort_values(by=['balance_diff'])
 print(df)
