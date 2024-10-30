@@ -70,8 +70,17 @@ class GaussEnsemble(Ensemble):
 			self.clfs.append(nn)
 
 class GEnsembleFactory(object):
-    def __call__(self,data):
-        	
+    def __init__(self,data):
+    	self.data
+    	self.k=None
+
+    def __call__(self):
+        if(self.k is None):
+            _,k=clustering.good_of_fit(in_path=data,
+        	                           alg_type="bayes",
+        	                           show=False)
+            self.k=k
+        return 	GaussEnsemble(k=self.k)
 
 @utils.elapsed_time
 def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
