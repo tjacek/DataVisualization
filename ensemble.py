@@ -50,18 +50,22 @@ class GaussEnsemble(Ensemble):
 
 	
 	def fit(self,X,y):
-		clustering=gauss.gaussian_clustering((X,y),k=self.k)
+		clustering=gauss.gaussian_clustering((X,y),
+			                                 alg_type="bayes",
+			                                 k=self.k)
 		hist=clustering.hist()
-#		print(hist.arr)
 		recall=hist.recall_matrix()
 		n_cats=clustering.dataset.n_cats()
 		for k,recall_k in enumerate(recall.T):
 			if(np.all(recall_k<0.5)):
+				print(k)
 				cls_k=clustering.wihout_cluster(k)
-				nn_k=deep.ClfCNN(default_cats=n_cats,
-								 verbose=self.verbose)
-				nn_k.fit(X=cls_k.X,y=cls_k.y)
-				self.clfs.append(nn_k)
+				if(cls_k.y.shape[0]>0):
+				    nn_k=deep.ClfCNN(default_cats=n_cats,
+								     verbose=self.verbose)
+				    print(cls_k.y.shape)
+				    nn_k.fit(X=cls_k.X,y=cls_k.y)
+				    self.clfs.append(nn_k)
 		if(self.full):
 			nn=deep.ClfCNN(default_cats=n_cats,
 						   verbose=self.verbose)
@@ -71,14 +75,14 @@ class GaussEnsemble(Ensemble):
 
 class GEnsembleFactory(object):
     def __init__(self,data):
-    	self.data
-    	self.k=None
+        self.data=data
+        self.k=None
 
     def __call__(self):
         if(self.k is None):
-            _,k=clustering.good_of_fit(in_path=data,
-        	                           alg_type="bayes",
-        	                           show=False)
+            _,k=gauss.good_of_fit(in_path=self.data,
+        	                      alg_type="bayes",
+        	                      show=False)
             self.k=k
         return 	GaussEnsemble(k=self.k)
 
