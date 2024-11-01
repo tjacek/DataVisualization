@@ -90,20 +90,20 @@ class GEnsembleFactory(object):
 def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
-        deep_ens=GaussEnsemble(k=3,verbose=verbose)
-    def helper(train,test):
-        deep_ens.reset()
-        nn=deep.ClfCNN(verbose=verbose)
-        result_ens=data.eval(train,test,deep_ens)
-        result_nn=data.eval(train,test,nn)
-        print(f"n_clf{len(deep_ens)}")
+        deep_ens=lambda:GaussEnsemble(k=3,verbose=verbose)
+    def helper(split):
+        result_ens=split.eval(data,deep_ens)
+        nn=deep.ClfCNN#(verbose=verbose)
+        result_nn=split.eval(data,nn)
+#        print(f"n_clf{len(deep_ens)}")
         return result_nn,result_ens
-    gen=exp.simple_split(data,n_splits=10)
+    protocol=exp.UnaggrSplit(n_splits=10,
+    	                     n_repeats=1)
+    splits=protocol.get_split(data)
     if(single):
-        train,test=next(gen)
-        return helper(train,test)
+        return helper(splits[0])
     else:
-        results=[helper(train_i,test_i) for train_i,test_i in gen]
+        results=[helper(split_i) for split_i in splits]
         partial_nn,partial_ens=list(zip(*results))
         result_nn=dataset.unify_results(partial_nn)
         result_ens=dataset.unify_results(partial_ens)
@@ -112,7 +112,7 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
 if __name__ == '__main__':
     deep_ens=ClassEnsemble()
     nn,ens=compare_ensemble("uci/cleveland",
-    	                    deep_ens=deep_ens,
+    	                    deep_ens=None,#deep_ens,
     	                    single=False,
     	                    verbose=0)
     nn.report()
