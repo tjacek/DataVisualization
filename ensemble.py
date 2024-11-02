@@ -90,12 +90,13 @@ class GEnsembleFactory(object):
 def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
     data=dataset.read_csv(in_path)
     if(deep_ens is None):
-        deep_ens=lambda:GaussEnsemble(k=3,verbose=verbose)
+        deep_ens=GaussEnsemble(k=3,verbose=verbose)
     def helper(split):
+        deep_ens.reset()
         result_ens=split.eval(data,deep_ens)
-        nn=deep.ClfCNN#(verbose=verbose)
+        nn=deep.ClfCNN(verbose=verbose)
         result_nn=split.eval(data,nn)
-#        print(f"n_clf{len(deep_ens)}")
+        print(f"n_clf{len(deep_ens)}")
         return result_nn,result_ens
     protocol=exp.UnaggrSplit(n_splits=10,
     	                     n_repeats=1)

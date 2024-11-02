@@ -35,7 +35,7 @@ class Exp(object):
                  for clf_type_j,clf_j in clf_iterator(data_i): 
                     desc=(data_id,feat_type_i,clf_type_j)
                     for split_k in splits:
-                        result=split_k.eval(data_i,clf_j)    
+                        result=split_k.eval(data_i,clf_j())    
                         yield desc,result
     
     def save(self):
@@ -88,7 +88,7 @@ class UnaggrSplit(object):
         def eval(self,data,clf):
             return data.eval(train_index=self.train_index,
                              test_index=self.test_index,
-                             clf=clf(),
+                             clf=clf,
                              as_result=True)
 
 class AggrSplit(object):
@@ -117,7 +117,7 @@ class AggrSplit(object):
             for train_t,test_t in self.indexes:
                 pred_t,test_t=data.eval(train_index=train_t,
                                         test_index=test_t,
-                                        clf=clf(),
+                                        clf=clf,
                                         as_result=False)
                 all_pred.append(pred_t)
                 all_test.append(test_t)
