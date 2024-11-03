@@ -1,6 +1,6 @@
-from tensorflow.keras.layers import Dense
-from tensorflow.keras import Input, Model
-from tensorflow.keras.models import Sequential
+from keras.layers import Dense
+from keras import Input, Model
+from keras.models import Sequential
 from keras import regularizers
 import dataset,gauss
 

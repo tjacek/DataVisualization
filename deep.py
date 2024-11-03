@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.layers import Dense,BatchNormalization#,Concatenate
-from tensorflow.keras import Input, Model
+from keras import layers
+#from layers import Dense,BatchNormalization#,Concatenate
+from keras import Input, Model
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 import dataset
@@ -85,13 +86,13 @@ def train(data,n_epochs=1000,report=True):
 
 def make_nn(params):
     input_layer = Input(shape=(params['dims'],))
-    x=Dense(2*params['dims'],
+    x=layers.Dense(2*params['dims'],
               activation='relu',
               name=f"layer_1")(input_layer)
-    x=Dense(params['dims'],
+    x=layers.Dense(params['dims'],
             activation='relu',
             name=f"layer_2")(x)
-    x=Dense(params['n_cats'], 
+    x=layers.Dense(params['n_cats'], 
             activation='softmax',
             name='out')(x)
     return Model(inputs=input_layer, 
