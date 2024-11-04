@@ -137,7 +137,7 @@ def get_clf(clf_type):
     if(clf_type=="LR"):
         return False,lambda : LogisticRegression(solver='liblinear')
     if(clf_type=="deep"):
-        return False,lambda : deep.ClfCNN()
+        return True, deep.DeepFactory
     if(clf_type=="gauss_ens"):
         return True,ensemble.GEnsembleFactory
     raise Exception(f"Unknow clf type:{clf_type}")

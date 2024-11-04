@@ -22,6 +22,18 @@ class DeepFeatures(object):
         new_X=extractor.predict(data.X)
         return dataset.Dataset(X=new_X,
                                y=data.y)
+
+class DeepFactory(object):
+    def __init__(self,data):
+#        self.data=data
+        self.n_cats=data.n_cats()
+
+    def __call__(self):
+        return ClfCNN(n_epochs=1000,
+                      default_cats=self.n_cats,
+                      default_weights=None,
+                      verbose=0)
+
 class ClfCNN(object):
     def __init__(self,n_epochs=1000,
                       default_cats=None,
