@@ -43,7 +43,9 @@ class Exp(object):
             out_i=prepare_path(self.output_path,desc_i)
             out_i=f"{out_i}/{i}"
             print(out_i)
-            result_i.save(out_i)
+            result_i.save(out_i)        
+        with open(f"{self.output_path}/desc", 'w') as f:
+            json.dump(self.get_desc(), f)
 
     def get_protocol(self):
         if(self.aggr):
@@ -65,6 +67,10 @@ class Exp(object):
             for clf_type_i,clf_i in data_clfs.items():
                 yield clf_type_i,clf_i(data) 
         return helper
+
+    def get_desc(self):
+        return { "feats":self.feats,"clf":self.clfs,"n_splits":self.n_splits,
+                 "n_repeats":self.n_repeats,"aggr":self.aggr}
 
 class UnaggrSplit(object):
     def __init__(self,n_splits,n_repeats):
@@ -176,5 +182,5 @@ def build_exp(in_path:str):
             ) 
 
 if __name__ == '__main__':
-    exp=build_exp("json/deep.js")
+    exp=build_exp("json/deep2.js")
     exp.save()
