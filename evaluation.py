@@ -4,6 +4,7 @@ from collections import defaultdict
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from scipy import stats
 import pandas as pd
+import argparse
 import itertools
 import dataset,exp
 
@@ -32,8 +33,7 @@ class MetricDict(object):
     def key_frame(self):
         lines=[]
         for key_i in self.keys():
-#            print(key_i)
-            line_i=key_i.split(',')#key_i.split('/')[-3:]
+            line_i=key_i.split(',')
             line_i.append(key_i)
             lines.append(line_i)
         return pd.DataFrame.from_records(lines,
@@ -65,11 +65,9 @@ def stat_test(in_path,query=None):
     query_fun= get_query_fun(kf,query)
     for data_k in kf["data"].unique():
         valid_id= query_fun(data_k)
-#        valid_id=list(kf_query['key'])
         for id_x,id_y in itertools.combinations(valid_id, 2):
-
             line=[id_x,id_y]
-            print(line)
+#            print(line)
             for metric_i in metrict_dict.metric_name():
                 x_metric=metrict_dict.dicts[metric_i][id_x]
                 y_metric=metrict_dict.dicts[metric_i][id_y]
@@ -109,6 +107,19 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
-df=stat_test("deep",['base,gauss_ens','base,RF'])
-df=df.sort_values(by=['balance_diff'])
-print(df)
+def eval(args):
+    if(args.summary):
+        df=basic_summary(args.input)
+        print(df)
+    clfs=args.clfs.split()
+    df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
+    df=df.sort_values(by=['balance_diff'])
+    print(df)    
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=str, default="uci_exp/unaggr_gauss")
+    parser.add_argument("--clfs", type=str, default="RF gauss_ens")
+    parser.add_argument('--summary', action='store_true')
+    args = parser.parse_args()
+    eval(args)
