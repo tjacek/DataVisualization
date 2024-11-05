@@ -1,11 +1,15 @@
 import numpy as np
 import os
+def warn(*args, **kwargs):
+    pass
+import warnings
+warnings.warn = warn
 from collections import defaultdict
 from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from scipy import stats
 import pandas as pd
-import argparse
-import itertools
+import argparse,itertools
+
 import dataset,exp
 
 class MetricDict(object):

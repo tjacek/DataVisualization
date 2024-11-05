@@ -21,14 +21,21 @@ class Ensemble(object):
         self.clfs=[]	
 
 class ClassEnsemble(Ensemble):
+    def __init__(self,weight_dict=None,full=True, verbose=0):
+        super().__init__(full=full,
+                         verbose=verbose)
+        self.weight_dict=weight_dict
+
     def fit(self,X,y):
-        weight_dict=dataset.get_class_weights(y)
-        size_dict=weight_dict.size_dict()
-        n_cats=len(weight_dict)
+        self.reset()
+        if(self.weight_dict==None):
+            self.weight_dict=dataset.get_class_weights(y)
+        size_dict=self.weight_dict.size_dict()
+        n_cats=len(self.weight_dict)
         avg_size=1.0/n_cats
         for cat_i,weight_i in size_dict.items():
             if(weight_i<avg_size):
-                dict_i=dataset.WeightDict(weight_dict.copy())
+                dict_i=dataset.WeightDict(self.weight_dict.copy())
                 dict_i[cat_i]= dict_i[cat_i]*(n_cats/2)
                 nn_k=deep.ClfCNN(default_cats=n_cats,
 								 default_weights=dict_i,
@@ -41,6 +48,13 @@ class ClassEnsemble(Ensemble):
             nn.fit(X=X,y=y)
             self.clfs.append(nn)
         return self
+
+class CEnsembleFactory(object):
+    def __init__(self,data):
+        self.weight_dict=dataset.get_class_weights(data.y)
+
+    def __call__(self):
+        return ClassEnsemble(weight_dict=self.weight_dict)
 
 class GaussEnsemble(Ensemble):
     def __init__(self,k,full=True, verbose=0):

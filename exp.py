@@ -140,6 +140,8 @@ def get_clf(clf_type):
         return True, deep.DeepFactory
     if(clf_type=="gauss_ens"):
         return True,ensemble.GEnsembleFactory
+    if(clf_type== "class_ens"):
+        return True,ensemble.CEnsembleFactory
     raise Exception(f"Unknow clf type:{clf_type}")
 
 def get_features(feat_type):
@@ -182,5 +184,5 @@ def build_exp(in_path:str):
             ) 
 
 if __name__ == '__main__':
-    exp=build_exp("json/deep_select.js")
+    exp=build_exp("json/simple.js")
     exp.save()
