@@ -43,35 +43,36 @@ class ClassEnsemble(Ensemble):
         return self
 
 class GaussEnsemble(Ensemble):
-	def __init__(self,k,full=True, verbose=0):
-		super().__init__(full=full,
-			             verbose=verbose)
-		self.k=k
+    def __init__(self,k,full=True, verbose=0):
+        super().__init__(full=full,
+                         verbose=verbose)
+        self.k=k
 
 	
-	def fit(self,X,y):
-		clustering=gauss.gaussian_clustering((X,y),
+    def fit(self,X,y):
+        self.reset()
+        clustering=gauss.gaussian_clustering((X,y),
 			                                 alg_type="bayes",
 			                                 k=self.k)
-		hist=clustering.hist()
-		recall=hist.recall_matrix()
-		n_cats=clustering.dataset.n_cats()
-		for k,recall_k in enumerate(recall.T):
-			if(np.all(recall_k<0.5)):
-				print(k)
-				cls_k=clustering.wihout_cluster(k)
-				if(cls_k.y.shape[0]>0):
-				    nn_k=deep.ClfCNN(default_cats=n_cats,
-								     verbose=self.verbose)
-				    print(cls_k.y.shape)
-				    nn_k.fit(X=cls_k.X,y=cls_k.y)
-				    self.clfs.append(nn_k)
-		if(self.full):
-			nn=deep.ClfCNN(default_cats=n_cats,
-						   verbose=self.verbose)
-			nn.fit(X=clustering.dataset.X,
-				   y=clustering.dataset.y)
-			self.clfs.append(nn)
+        hist=clustering.hist()
+        recall=hist.recall_matrix()
+        n_cats=clustering.dataset.n_cats()
+        for k,recall_k in enumerate(recall.T):
+            if(np.all(recall_k<0.5)):
+                print(k)
+                cls_k=clustering.wihout_cluster(k)
+                if(cls_k.y.shape[0]>0):
+                    nn_k=deep.ClfCNN(default_cats=n_cats,
+                                     verbose=self.verbose)
+                    print(cls_k.y.shape)
+                    nn_k.fit(X=cls_k.X,y=cls_k.y)
+                    self.clfs.append(nn_k)
+        if(self.full):
+            nn=deep.ClfCNN(default_cats=n_cats,
+                verbose=self.verbose)
+            nn.fit(X=clustering.dataset.X,
+                   y=clustering.dataset.y)
+            self.clfs.append(nn)
 
 class GEnsembleFactory(object):
     def __init__(self,data):
@@ -112,7 +113,7 @@ def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
 
 if __name__ == '__main__':
     deep_ens=ClassEnsemble()
-    nn,ens=compare_ensemble("uci/cleveland",
+    nn,ens=compare_ensemble("../uci/cleveland",
     	                    deep_ens=None,#deep_ens,
     	                    single=False,
     	                    verbose=0)

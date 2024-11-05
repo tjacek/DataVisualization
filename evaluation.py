@@ -111,15 +111,16 @@ def eval(args):
     if(args.summary):
         df=basic_summary(args.input)
         print(df)
-    clfs=args.clfs.split()
-    df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
-    df=df.sort_values(by=['balance_diff'])
-    print(df)    
+    clfs=args.clfs.split(",")
+    if(len(clfs)>1):
+        df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
+        df=df.sort_values(by=['balance_diff'])
+        print(df)    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, default="uci_exp/unaggr_gauss")
-    parser.add_argument("--clfs", type=str, default="RF gauss_ens")
+    parser.add_argument("--input", type=str, default="uci_exp/aggr_gauss")
+    parser.add_argument("--clfs", type=str, default="RF,gauss_ens")
     parser.add_argument('--summary', action='store_true')
     args = parser.parse_args()
     eval(args)

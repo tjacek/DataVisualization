@@ -182,5 +182,5 @@ def build_exp(in_path:str):
             ) 
 
 if __name__ == '__main__':
-    exp=build_exp("json/deep2.js")
+    exp=build_exp("json/deep_select.js")
     exp.save()
