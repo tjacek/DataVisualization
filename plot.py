@@ -38,7 +38,7 @@ def plot(data,show=True):
 
 def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
-        data=dataset.read_csv(in_path)
+        data=dataset.read_csv(data)
     if(transform is None):
         transform={ "pca":reduction.pca_transform,
                     "spectral":reduction.spectral_transform,
@@ -56,8 +56,11 @@ def reduce_plots(data,out_path=None,transform=None,show=False):
         if(out_path):
             plt.savefig(f'{out_path}/{name_i}')
 
+def simple_plot(in_path):
+    reduce_plots(data=in_path,
+                 out_path=None,
+                 transform={"lle":reduction.lle_transform},
+                 show=True)
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
-    data=dataset.read_csv("../uci/cmc")
-    data=deep.DeepFeatures()(data)
-    reduce_plots(data,show=True)
+    simple_plot(in_path="../uci/newthyroid")
