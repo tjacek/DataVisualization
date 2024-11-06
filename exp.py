@@ -3,6 +3,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
 import json
+import gc
 import dataset,autoencoder,deep,ensemble,utils
 
 class Exp(object):
@@ -36,6 +37,7 @@ class Exp(object):
                     desc=(data_id,feat_type_i,clf_type_j)
                     for split_k in splits:
                         result=split_k.eval(data_i,clf_j())    
+                        gc.collect()
                         yield desc,result
     
     def save(self):
@@ -184,5 +186,5 @@ def build_exp(in_path:str):
             ) 
 
 if __name__ == '__main__':
-    exp=build_exp("json/simple.js")
+    exp=build_exp("json/deep2.js")
     exp.save()
