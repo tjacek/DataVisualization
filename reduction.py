@@ -66,6 +66,23 @@ def pca_transform(data,
     return dataset.Dataset(X=new_X,
                            y=data.y)
 
+def get_reduction(redu_name):
+    if(redu_name=="pca"):
+        return pca_transform
+    if(redu_name=="spectral"):
+        return spectral_transform
+    if(redu_name=="lda"):
+        return lda_transform
+    if(redu_name=="lle"):
+        return lle_transform
+    if(redu_name=="mda"):
+        return mda_transform
+    if(redu_name=="tsne"):
+        return tsne_transform
+    if(redu_name=="ensemble"):
+        return ensemble_transform
+    raise Exception(f"No reduction {redu_name}")
+
 if __name__ == '__main__':
     data=dataset.read_csv("uci/cleveland")
     spectral_transform(data,n_components=2)

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
 import dataset,reduction,utils
 import deep
 
@@ -61,8 +62,34 @@ def simple_plot(in_path):
                  out_path=None,
                  transform={"lle":reduction.lle_transform},
                  show=True)
+
+def error_plot(data_path="../uci/newthyroid",
+               result_path="uci_exp/aggr_gauss/newthyroid",
+               first_path="base/deep/310.npz",
+               second_path="base/class_ens/70.npz"):
+    comp=dataset.compare_results(first_path=f"{result_path}/{first_path}",
+                                 second_path=f"{result_path}/{second_path}")
+    data=dataset.read_csv(data_path)
+    transform=reduction.get_reduction("lle")
+    print(transform)
+    data=transform(data,n_components=2)
+    plt.figure()
+    ax = plt.subplot(111)
+    cmap = colors.ListedColormap(['b','y','g','r'])
+    for i,y_i in enumerate(data.y):
+        plt.text(data.X[i, 0], 
+                 data.X[i, 1], 
+                 str(int(y_i)),
+                 color=cmap(comp[i]),
+                 fontdict={'weight': 'bold', 'size': 9})
+    x_min,y_min=data.min()
+    x_max,y_max=data.max()
+    plt.xlim((x_min,x_max))
+    plt.ylim((y_min,y_max))
+#    if(show):
+    plt.show()
+
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    dataset.compare_results(first_path="uci_exp/aggr_gauss/newthyroid/base/deep/310.npz",
-                            second_path="uci_exp/aggr_gauss/newthyroid/base/class_ens/70.npz")
+    error_plot()
