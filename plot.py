@@ -63,4 +63,6 @@ def simple_plot(in_path):
                  show=True)
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
-    simple_plot(in_path="../uci/newthyroid")
+#     simple_plot(in_path="../uci/newthyroid")
+    dataset.compare_results(first_path="uci_exp/aggr_gauss/newthyroid/base/deep/310.npz",
+                            second_path="uci_exp/aggr_gauss/newthyroid/base/class_ens/70.npz")
