@@ -32,7 +32,7 @@ class MetricDict(object):
         return self.metrics.keys()
 
     def keys(self):
-    	return self.dicts["acc"].keys()
+        return list(self.dicts.values())[0].keys()
 
     def key_frame(self):
         lines=[]
@@ -118,7 +118,8 @@ def eval(args):
     clfs=args.clfs.split(",")
     if(len(clfs)>1):
         df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
-        df=df.sort_values(by=['balance_diff'])
+#        df=df.sort_values(by=['balance_diff'])
+        df=df.sort_values(by=[args.sort])
         print(df)    
 
 if __name__ == '__main__':
@@ -126,5 +127,6 @@ if __name__ == '__main__':
     parser.add_argument("--input", type=str, default="uci_exp/aggr_gauss")
     parser.add_argument("--clfs", type=str, default="RF,gauss_ens")
     parser.add_argument('--summary', action='store_true')
+    parser.add_argument('--sort', type=str, default="balance_diff")
     args = parser.parse_args()
     eval(args)
