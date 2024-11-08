@@ -61,17 +61,31 @@ def simple_plot(in_path):
     reduce_plots(data=in_path,
                  out_path=None,
                  transform={"lle":reduction.lle_transform},
-                 show=True)
+               show=True)
 
-def error_plot(data_path="../uci/newthyroid",
-               result_path="uci_exp/aggr_gauss/newthyroid",
-               first_path="base/deep/310.npz",
-               second_path="base/class_ens/70.npz"):
+def error_data(params):
+    result,feats=params["result"],params["feats"]
+    comp_data=[]
+    for data_path_i in utils.top_files(params['data']):
+        dataset.read_csv(data_path_i)
+        data_id=data_path_i.split('/')[-1]
+        path_i=f'{result}/{data_id}/{feats}'
+        first="%s/%s" % (path_i,params["first"])
+        second="%s/%s" % (path_i,params["second"])
+        comp_i=dataset.compare_results(first_path=utils.top_files(first)[0],
+                                       second_path=utils.top_files(second)[0])
+        comp_data.append((data_id,comp_i))
+    return comp_data
+
+def error_plot(data_path="../uci/lymphography",
+               result_path="uci_exp/aggr_gauss/lymphography",
+               first_path="base/RF/160.npz",
+               second_path="base/class_ens/40.npz"):
     comp=dataset.compare_results(first_path=f"{result_path}/{first_path}",
                                  second_path=f"{result_path}/{second_path}")
+    print(comp)
     data=dataset.read_csv(data_path)
     transform=reduction.get_reduction("lle")
-    print(transform)
     data=transform(data,n_components=2)
     plt.figure()
     ax = plt.subplot(111)
@@ -86,10 +100,18 @@ def error_plot(data_path="../uci/newthyroid",
     x_max,y_max=data.max()
     plt.xlim((x_min,x_max))
     plt.ylim((y_min,y_max))
+    ax.legend()
 #    if(show):
     plt.show()
 
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    error_plot()
+#    error_plot()
+    params={"data":"../uci",
+            "result":"uci_exp/aggr_gauss",
+            "feats":"base",
+            "first":"RF",
+            "second":"class_ens"}
+    comp=error_data(params)
+    print(comp)
