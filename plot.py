@@ -63,13 +63,25 @@ def simple_plot(in_path):
                  transform={"lle":reduction.lle_transform},
                show=True)
 
-def error_plot(params):
-    cmap = colors.ListedColormap(['b','y','g','r'])
+def error_plot(params,transform=None):
+    if(transform is None):
+        transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
+    transform_fun={ transform_i:reduction.get_reduction(transform_i) 
+                       for transform_i in transform}
+    col,com=['b','y','g','r'],['neither',params['first'],params['second'],'both']
+    cmap = colors.ListedColormap(col)
+    text=[ f'{color_i}-{com_i}' 
+            for color_i,com_i in  zip(col,com)]
+    text=",".join(text)
+    out_path=params["out_path"]
+    utils.make_dir(out_path)
     for data_id,data_i,comp_i in error_data(params):
-        transform=reduction.get_reduction("lle")
-        data_i=transform(data_i,n_components=2)
-        text_plot(data_i,comp_i,cmap)
-        plt.show()
+        utils.make_dir(f"{out_path}/{data_id}")
+        print(data_id)
+        for name_j,fun_j in transform_fun.items():
+            data_j=fun_j(data_i,n_components=2)
+            text_plot(data_j,cmap,comp_i,title=data_id,comment=text)
+            plt.savefig(f'{out_path}/{data_id}/{name_j}')
 
 def error_data(params):
     result,feats=params["result"],params["feats"]
@@ -85,8 +97,11 @@ def error_data(params):
         comp_data.append((data_id,data_i,comp_i))
     return comp_data
 
-def text_plot(data,labels,cmap,):
+def text_plot(data,cmap,labels=None,title="",comment=""):
+    if(labels is None):
+        labels=data.y
     plt.figure()
+    plt.title(title)
     ax = plt.subplot(111)
     for i,y_i in enumerate(data.y):
         plt.text(data.X[i, 0], 
@@ -95,39 +110,13 @@ def text_plot(data,labels,cmap,):
                  color=cmap(labels[i]),
                  fontdict={'weight': 'bold', 'size': 9})
         norm_plot(data)
+    plt.figtext(0.5, 0.01, comment)
 
 def norm_plot(data):
     x_min,y_min=data.min()
     x_max,y_max=data.max()
     plt.xlim((x_min,x_max))
     plt.ylim((y_min,y_max))
-
-#def error_plot(data_path="../uci/lymphography",
-#               result_path="uci_exp/aggr_gauss/lymphography",
-#               first_path="base/RF/160.npz",
-#               second_path="base/class_ens/40.npz"):
-#    comp=dataset.compare_results(first_path=f"{result_path}/{first_path}",
-#                                 second_path=f"{result_path}/{second_path}")
-#    print(comp)
-#    data=dataset.read_csv(data_path)
-#    transform=reduction.get_reduction("lle")
-#    data=transform(data,n_components=2)
-#    plt.figure()
-#    ax = plt.subplot(111)
-#    cmap = colors.ListedColormap(['b','y','g','r'])
-#    for i,y_i in enumerate(data.y):
-#        plt.text(data.X[i, 0], 
-#                 data.X[i, 1], 
-#                 str(int(y_i)),
-#                 color=cmap(comp[i]),
-#                 fontdict={'weight': 'bold', 'size': 9})
-#    x_min,y_min=data.min()
-#    x_max,y_max=data.max()
-#    plt.xlim((x_min,x_max))
-#    plt.ylim((y_min,y_max))
-#    ax.legend()
-#    if(show):
-#    plt.show()
 
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
@@ -137,5 +126,6 @@ if __name__ == '__main__':
             "result":"uci_exp/aggr_gauss",
             "feats":"base",
             "first":"RF",
-            "second":"class_ens"}
+            "second":"class_ens",
+            "out_path":"pl"}
     error_plot(params)
