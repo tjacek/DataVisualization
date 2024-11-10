@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import RepeatedStratifiedKFold
-import json
+import json,argparse
 import gc
 import dataset,autoencoder,deep,ensemble,utils
 
@@ -186,5 +186,8 @@ def build_exp(in_path:str):
             ) 
 
 if __name__ == '__main__':
-    exp=build_exp("json/deep2.js")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=str, default="json/deep2.js")
+    args = parser.parse_args()
+    exp=build_exp(args.input)
     exp.save()
