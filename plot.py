@@ -41,17 +41,12 @@ def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
         data=dataset.read_csv(data)
     if(transform is None):
-        transform={ "pca":reduction.pca_transform,
-                    "spectral":reduction.spectral_transform,
-                    "lda":reduction.lda_transform,
-                    "lle":reduction.lle_transform,
-                    "mda":reduction.mda_transform,
-                    "tsne":reduction.tsne_transform,
-                    "ensemble":reduction.ensemble_transform}
+        transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
     if(out_path):
         utils.make_dir(out_path)
-    for name_i,transform_i in transform.items():
-        data_i=transform_i(data,n_components=2)
+    for transform_i in transform:
+        transform_fun=reduction.get_reduction(transform_i) 
+        data_i=transform_fun(data,n_components=2)
         plot(data_i,
              show=show)
         if(out_path):
