@@ -17,40 +17,51 @@ class PlotGenerator(object):
             return reduce_plots(data,out_path,transform=None)    
         helper(in_path,out_path)
 
-def plot(data,show=True):
-    if(data.dim()!=2):
-        raise Exception(f"dim of data:{data.dim()}")    
-    cat2col= np.arange(20)
-    np.random.shuffle(cat2col)
-    plt.figure()
-    ax = plt.subplot(111)
-    for i,y_i in enumerate(data.y):
-        plt.text(data.X[i, 0], 
-                 data.X[i, 1], 
-                 str(int(y_i)),
-                 color=plt.cm.tab20(int(y_i)),
-                 fontdict={'weight': 'bold', 'size': 9})
-    x_min,y_min=data.min()
-    x_max,y_max=data.max()
-    plt.xlim((x_min,x_max))
-    plt.ylim((y_min,y_max))
-    if(show):
-        plt.show()
+#def plot(data,show=True):
+#    if(data.dim()!=2):
+#        raise Exception(f"dim of data:{data.dim()}")    
+#    cat2col= np.arange(20)
+#    np.random.shuffle(cat2col)
+#    plt.figure()
+#    ax = plt.subplot(111)
+#    for i,y_i in enumerate(data.y):
+#        plt.text(data.X[i, 0], 
+#                 data.X[i, 1], 
+#                 str(int(y_i)),
+#                 color=plt.cm.tab20(int(y_i)),
+#                 fontdict={'weight': 'bold', 'size': 9})
+#    x_min,y_min=data.min()
+#    x_max,y_max=data.max()
+#    plt.xlim((x_min,x_max))
+#    plt.ylim((y_min,y_max))
+#    if(show):
+#        plt.show()
 
 def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
         data=dataset.read_csv(data)
     if(transform is None):
         transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
+    cat2col= np.arange(data.n_cats())
+    np.random.shuffle(cat2col)
+    def color_helper(i):
+        return plt.cm.tab20(cat2col[int(i)])
+
     if(out_path):
         utils.make_dir(out_path)
-    for transform_i in transform:
-        transform_fun=reduction.get_reduction(transform_i) 
+    for transform_type_i in transform:
+        transform_fun=reduction.get_reduction(transform_type_i) 
+        print(transform_fun)
         data_i=transform_fun(data,n_components=2)
-        plot(data_i,
-             show=show)
+        text_plot(data=data_i,
+                  cmap=color_helper,#plt.cm.tab20,
+                  labels=data_i.y,
+                  title=transform_type_i,
+                  comment="")
+#        plot(data_i,
+#             show=show)
         if(out_path):
-            plt.savefig(f'{out_path}/{name_i}')
+            plt.savefig(f'{out_path}/{transform_type_i}')
 
 def simple_plot(in_path):
     reduce_plots(data=in_path,
@@ -93,6 +104,8 @@ def error_data(params):
     return comp_data
 
 def text_plot(data,cmap,labels=None,title="",comment=""):
+    if(data.dim()!=2):
+        raise Exception(f"dim of data:{data.dim()}")  
     if(labels is None):
         labels=data.y
     plt.figure()
@@ -116,11 +129,11 @@ def norm_plot(data):
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-#    error_plot()
-    params={"data":"../uci",
-            "result":"uci_exp/aggr_gauss",
-            "feats":"base",
-            "first":"RF",
-            "second":"class_ens",
-            "out_path":"pl"}
-    error_plot(params)
+    reduce_plots("../uci/wine-quality-red",out_path="test")
+#    params={"data":"../uci",
+#            "result":"uci_exp/aggr_gauss",
+#            "feats":"base",
+#            "first":"RF",
+#            "second":"class_ens",
+#            "out_path":"pl"}
+#    error_plot(params)
