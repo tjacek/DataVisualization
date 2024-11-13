@@ -2,72 +2,72 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import dataset,reduction,utils
-import deep
+import deep,gauss
 
-class PlotGenerator(object):
-    def __init__(self,feats=None):
-        self.feats=None
+#class PlotGenerator(object):
+#    def __init__(self,feats=None):
+#        self.feats=None
 
-    def __call__(self,in_path,out_path):
-        utils.make_dir(out_path)
-        @utils.DirFun({'in_path':0,'out_path':1})
-        def helper(in_path,out_path):
-            print(out_path)
-            data=dataset.read_csv(in_path)
-            return reduce_plots(data,out_path,transform=None)    
-        helper(in_path,out_path)
-
-#def plot(data,show=True):
-#    if(data.dim()!=2):
-#        raise Exception(f"dim of data:{data.dim()}")    
-#    cat2col= np.arange(20)
-#    np.random.shuffle(cat2col)
-#    plt.figure()
-#    ax = plt.subplot(111)
-#    for i,y_i in enumerate(data.y):
-#        plt.text(data.X[i, 0], 
-#                 data.X[i, 1], 
-#                 str(int(y_i)),
-#                 color=plt.cm.tab20(int(y_i)),
-#                 fontdict={'weight': 'bold', 'size': 9})
-#    x_min,y_min=data.min()
-#    x_max,y_max=data.max()
-#    plt.xlim((x_min,x_max))
-#    plt.ylim((y_min,y_max))
-#    if(show):
-#        plt.show()
+#    def __call__(self,in_path,out_path):
+#        utils.make_dir(out_path)
+#        @utils.DirFun({'in_path':0,'out_path':1})
+#        def helper(in_path,out_path):
+#            print(out_path)
+#            data=dataset.read_csv(in_path)
+#            return reduce_plots(data,out_path,transform=None)    
+#        helper(in_path,out_path)
 
 def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
         data=dataset.read_csv(data)
-    if(transform is None):
-        transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
-    cat2col= np.arange(data.n_cats())
-    np.random.shuffle(cat2col)
-    def color_helper(i):
-        return plt.cm.tab20(cat2col[int(i)])
-
+    color_helper= make_color_map(data)
     if(out_path):
         utils.make_dir(out_path)
-    for transform_type_i in transform:
-        transform_fun=reduction.get_reduction(transform_type_i) 
-        print(transform_fun)
-        data_i=transform_fun(data,n_components=2)
+    for transform_type_i,data_i in transorm_iter(transform):
+        print(transform_type_i)
         text_plot(data=data_i,
-                  cmap=color_helper,#plt.cm.tab20,
+                  cmap=color_helper,
                   labels=data_i.y,
                   title=transform_type_i,
                   comment="")
-#        plot(data_i,
-#             show=show)
         if(out_path):
             plt.savefig(f'{out_path}/{transform_type_i}')
 
-def simple_plot(in_path):
-    reduce_plots(data=in_path,
-                 out_path=None,
-                 transform={"lle":reduction.lle_transform},
-               show=True)
+
+def clustering_plots(data,out_path=None,transform=None):
+    data=dataset.read_csv(data)
+    _,n_clusters=gauss.good_of_fit(in_path=data,
+                                   alg_type="bayes",
+                                   show=False)
+    clustering=gauss.gaussian_clustering((data.X,data.y),
+                                         alg_type="bayes",
+                                         k=n_clusters)
+    color_helper= make_color_map(data)
+    if(out_path):
+        utils.make_dir(out_path)
+    for transform_type_i,data_i in transorm_iter(data,transform):
+        print(transform_type_i)
+        text_plot(data=data_i,
+                  cmap=color_helper,
+                  labels=clustering.cls_indices,
+                  title=transform_type_i,
+                  comment=f"Number of clusters:{n_clusters}")
+        if(out_path):
+            plt.savefig(f'{out_path}/{transform_type_i}')
+
+
+def transorm_iter(data,transform):
+    if(transform is None):
+        transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
+    for transform_type_i in transform:
+        transform_fun=reduction.get_reduction(transform_type_i) 
+        data_i=transform_fun(data,n_components=2)
+        yield transform_type_i,data_i
+#def simple_plot(in_path):
+#    reduce_plots(data=in_path,
+#                 out_path=None,
+#                 transform={"lle":reduction.lle_transform},
+#               show=True)
 
 def error_plot(params,transform=None):
     if(transform is None):
@@ -126,10 +126,17 @@ def norm_plot(data):
     plt.xlim((x_min,x_max))
     plt.ylim((y_min,y_max))
 
+def make_color_map(data):
+    cat2col= np.arange(data.n_cats())
+    np.random.shuffle(cat2col)
+    def color_helper(i):
+        return plt.cm.tab20(cat2col[int(i)])
+    return color_helper
+
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    reduce_plots("../uci/wine-quality-red",out_path="test")
+    clustering_plots("../uci/wine-quality-red",out_path="test")
 #    params={"data":"../uci",
 #            "result":"uci_exp/aggr_gauss",
 #            "feats":"base",
