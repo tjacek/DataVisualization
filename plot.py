@@ -33,16 +33,16 @@ def reduce_plots(data,out_path=None,transform=None,show=False):
         if(out_path):
             plt.savefig(f'{out_path}/{transform_type_i}')
 
-
-def clustering_plots(data,out_path=None,transform=None):
-    data=dataset.read_csv(data)
+@utils.DirFun({'in_path':0,'out_path':1})
+def clustering_plots(in_path,out_path=None,transform=None):
+    data=dataset.read_csv(in_path)
     _,n_clusters=gauss.good_of_fit(in_path=data,
                                    alg_type="bayes",
                                    show=False)
     clustering=gauss.gaussian_clustering((data.X,data.y),
                                          alg_type="bayes",
                                          k=n_clusters)
-    color_helper= make_color_map(data)
+    color_helper= make_color_map(n_clusters)
     if(out_path):
         utils.make_dir(out_path)
     for transform_type_i,data_i in transorm_iter(data,transform):
@@ -54,7 +54,6 @@ def clustering_plots(data,out_path=None,transform=None):
                   comment=f"Number of clusters:{n_clusters}")
         if(out_path):
             plt.savefig(f'{out_path}/{transform_type_i}')
-
 
 def transorm_iter(data,transform):
     if(transform is None):
@@ -126,8 +125,10 @@ def norm_plot(data):
     plt.xlim((x_min,x_max))
     plt.ylim((y_min,y_max))
 
-def make_color_map(data):
-    cat2col= np.arange(data.n_cats())
+def make_color_map(n_cats):
+    if(type(n_cats)==dataset.Dataset):
+        n_cats=n_cats.n_cats()
+    cat2col= np.arange(n_cats)
     np.random.shuffle(cat2col)
     def color_helper(i):
         return plt.cm.tab20(cat2col[int(i)])
@@ -136,7 +137,7 @@ def make_color_map(data):
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    clustering_plots("../uci/wine-quality-red",out_path="test")
+    clustering_plots("../uci/",out_path="clustering")
 #    params={"data":"../uci",
 #            "result":"uci_exp/aggr_gauss",
 #            "feats":"base",
