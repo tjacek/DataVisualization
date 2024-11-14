@@ -21,9 +21,12 @@ def reduce_plots(data,out_path=None,transform=None,show=False):
             plt.savefig(f'{out_path}/{transform_type_i}')
 
 @utils.DirFun({'in_path':0,'out_path':1})
-def clustering_plots(in_path,out_path=None,transform=None):
+def clustering_plots(in_path,
+                     out_path=None,
+                     transform=None,
+                     clust_type="gauss"):
     data=dataset.read_csv(in_path)
-    clust=clustering.get_clustering("gauss")(data)
+    clust=clustering.get_clustering(clust_type)(data)
     n_clusters=clust.n_clusters()
     color_helper= make_color_map(n_clusters)
     if(out_path):
@@ -115,7 +118,7 @@ def make_color_map(n_cats):
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    clustering_plots("../uci/cmc",out_path="clustering2")
+    clustering_plots("../uci/cmc",out_path="clustering2",clust_type="spectral")
 #    params={"data":"../uci",
 #            "result":"uci_exp/aggr_gauss",
 #            "feats":"base",

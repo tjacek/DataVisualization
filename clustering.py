@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn import cluster
 import gauss,dataset
 
 class Clustering(object):
@@ -77,9 +78,19 @@ class Histogram(object):
         return np.array(recall_matrix)
 
 def get_clustering(clustering_type):
+    if(clustering_type=="spectral"):
+        return spectral_clustering
     if(clustering_type=="gauss"):
         return gauss_clustering
     raise Exception(f"Unknow clustering type:{clustering_type}")
+
+def spectral_clustering(data): 
+    alg = cluster.SpectralClustering(n_clusters=data.n_cats(),
+                                     eigen_solver="arpack",
+                                     affinity="nearest_neighbors")
+    alg.fit(data.X)
+    return Clustering(dataset=data,
+                      cls_indices=alg.labels_.astype(int))
 
 def gauss_clustering(data):
     _,n_clusters=gauss.good_of_fit(in_path=data,
