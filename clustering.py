@@ -1,4 +1,5 @@
 import numpy as np
+import gauss,dataset
 
 class Clustering(object):
     def __init__(self,dataset,cls_indices):
@@ -75,6 +76,32 @@ class Histogram(object):
             recall_matrix.append(recall_i)
         return np.array(recall_matrix)
 
-def ineq_measure(x):
-    x=x/np.sum(x)
-    return np.dot(x,x)
+def get_clustering(clustering_type):
+    if(clustering_type=="gauss"):
+        return gauss_clustering
+    raise Exception(f"Unknow clustering type:{clustering_type}")
+
+def gauss_clustering(data):
+    _,n_clusters=gauss.good_of_fit(in_path=data,
+                                   alg_type="bayes",
+                                   show=False)
+    return gaussian_alg((data.X,data.y),
+                        alg_type="bayes",
+                        n_clusters=n_clusters)
+
+def gaussian_alg(in_path,n_clusters=5,alg_type="bayes"):
+    data=dataset.read_csv(in_path)
+    mixture=gauss.get_mixture_alg(alg_type)
+    mixture.fit(data.X,n_components=n_clusters)
+    all_dist=[]
+    for i in range(n_clusters):
+        gauss_i=gauss.MuliGauss(mean=mixture.alg.means_[i],
+                                conv=mixture.alg.covariances_[i])
+        all_dist.append(gauss_i)
+    cls_indices=[]
+    for i,x_i in enumerate(data.X):
+        prob_i=[ dist_j(x_i) for dist_j in all_dist ]
+        cluster_i=np.argmax(prob_i)
+        cls_indices.append(cluster_i)
+    return Clustering(dataset=data,
+                      cls_indices=cls_indices)

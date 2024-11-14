@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.mixture import GaussianMixture,BayesianGaussianMixture
-import clustering,dataset,visualize
+import dataset,visualize
 
 class BasicMixture(object):
     def __init__(self,criterion="bic"):
@@ -74,7 +74,7 @@ class MuliGauss(object):
         eig_values/= np.sum(eig_values)
         return np.round(eig_values, decimals=3)
 
-def fit_gauss(in_path):#,verbose=True):
+def fit_gauss(in_path):
     data=dataset.read_csv(in_path)
     mixture=GaussianMixture(n_components=data.n_cats())
     mixture.fit(data.X)
@@ -136,33 +136,15 @@ def good_of_fit(in_path,alg_type="bayes",show=False):
     norm_cri=[ crit_i/crit_max for crit_i in criterion]
     return norm_cri,k
 
-def gaussian_clustering(in_path,k=5,alg_type="bayes",show=True):
-    data=dataset.read_csv(in_path)
-    mixture=get_mixture_alg(alg_type)
-    mixture.fit(data.X,n_components=k)
-    all_dist=[]
-    for i in range(k):
-        gauss_i=MuliGauss(mean=mixture.alg.means_[i],
-                          conv=mixture.alg.covariances_[i])
-        all_dist.append(gauss_i)
-    cls_indices=[]
-    for i,x_i in enumerate(data.X):
-        prob_i=[ dist_j(x_i) for dist_j in all_dist ]
-        cluster_i=np.argmax(prob_i)
-        cls_indices.append(cluster_i)
-    return clustering.Clustering(dataset=data,
-                              cls_indices=cls_indices)
-
 def point_distribution(in_path,k=5,alg_type="bayes",show=True):
     cluster=gaussian_clustering(in_path=in_path,
                                 k=k,alg_type=alg_type,show=show)
-    hist=cluster.hist()
+    hist=cluster.hist().arr
     visualize.stacked_bar_plot(hist,show=show)
     cluster_gini=[dataset.ineq_measure(hist_i) for hist_i in hist]
     cat_gini=[dataset.ineq_measure(hist_i) for hist_i in hist.T]
     return cluster_gini,cat_gini
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
 #    visualize.HMGenerator(show_euclid)("../uci","euclid")
 #    point_distribution("../uci/cleveland")
-     GaussExp()("../uci","gauss")

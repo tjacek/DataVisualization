@@ -2,20 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import dataset,reduction,utils
-import deep,gauss
-
-#class PlotGenerator(object):
-#    def __init__(self,feats=None):
-#        self.feats=None
-
-#    def __call__(self,in_path,out_path):
-#        utils.make_dir(out_path)
-#        @utils.DirFun({'in_path':0,'out_path':1})
-#        def helper(in_path,out_path):
-#            print(out_path)
-#            data=dataset.read_csv(in_path)
-#            return reduce_plots(data,out_path,transform=None)    
-#        helper(in_path,out_path)
+import deep,clustering #,gauss
 
 def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
@@ -36,12 +23,8 @@ def reduce_plots(data,out_path=None,transform=None,show=False):
 @utils.DirFun({'in_path':0,'out_path':1})
 def clustering_plots(in_path,out_path=None,transform=None):
     data=dataset.read_csv(in_path)
-    _,n_clusters=gauss.good_of_fit(in_path=data,
-                                   alg_type="bayes",
-                                   show=False)
-    clustering=gauss.gaussian_clustering((data.X,data.y),
-                                         alg_type="bayes",
-                                         k=n_clusters)
+    clust=clustering.get_clustering("gauss")(data)
+    n_clusters=clust.n_clusters()
     color_helper= make_color_map(n_clusters)
     if(out_path):
         utils.make_dir(out_path)
@@ -49,7 +32,7 @@ def clustering_plots(in_path,out_path=None,transform=None):
         print(transform_type_i)
         text_plot(data=data_i,
                   cmap=color_helper,
-                  labels=clustering.cls_indices,
+                  labels=clust.cls_indices,
                   title=transform_type_i,
                   comment=f"Number of clusters:{n_clusters}")
         if(out_path):
@@ -62,11 +45,6 @@ def transorm_iter(data,transform):
         transform_fun=reduction.get_reduction(transform_type_i) 
         data_i=transform_fun(data,n_components=2)
         yield transform_type_i,data_i
-#def simple_plot(in_path):
-#    reduce_plots(data=in_path,
-#                 out_path=None,
-#                 transform={"lle":reduction.lle_transform},
-#               show=True)
 
 def error_plot(params,transform=None):
     if(transform is None):
@@ -137,7 +115,7 @@ def make_color_map(n_cats):
 if __name__ == '__main__':
 #    PlotGenerator()("../uci","reduction")
 #     simple_plot(in_path="../uci/newthyroid")
-    clustering_plots("../uci/",out_path="clustering")
+    clustering_plots("../uci/cmc",out_path="clustering2")
 #    params={"data":"../uci",
 #            "result":"uci_exp/aggr_gauss",
 #            "feats":"base",
