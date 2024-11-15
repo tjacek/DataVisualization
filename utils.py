@@ -25,6 +25,8 @@ class DirFun(object):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
             old_values=self.get_input(*args, **kwargs)
+            if(not os.path.exist(old_values[self.input_arg])):
+                make_dir(old_values[self.input_arg])
             if(not os.path.isdir(old_values[self.input_arg])):
                 return fun(*args, **kwargs)
             for in_i in top_files(old_values[self.input_arg]):
