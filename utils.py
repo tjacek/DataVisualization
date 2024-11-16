@@ -25,11 +25,12 @@ class DirFun(object):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
             old_values=self.get_input(*args, **kwargs)
-            if(not os.path.exist(old_values[self.input_arg])):
-                make_dir(old_values[self.input_arg])
-            if(not os.path.isdir(old_values[self.input_arg])):
+            in_path=old_values[self.input_arg]
+            if(not os.path.exists(in_path)):
+                make_dir(in_path)
+            if(not os.path.isdir(in_path)):
                 return fun(*args, **kwargs)
-            for in_i in top_files(old_values[self.input_arg]):
+            for in_i in top_files(in_path):
                 id_i=in_i.split('/')[-1]
                 new_values={name_j:f"{value_j}/{id_i}"  
                     for name_j,value_j in old_values.items()}
