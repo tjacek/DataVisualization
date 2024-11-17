@@ -30,11 +30,13 @@ class DirFun(object):
                 make_dir(in_path)
             if(not os.path.isdir(in_path)):
                 return fun(*args, **kwargs)
+            result_dict={}
             for in_i in top_files(in_path):
                 id_i=in_i.split('/')[-1]
                 new_values={name_j:f"{value_j}/{id_i}"  
                     for name_j,value_j in old_values.items()}
-                self.eval_fun(fun,new_values,args,kwargs)
+                result_dict[in_i]=self.eval_fun(fun,new_values,args,kwargs)
+            return result_dict
         return decor_fun
     
     def get_input(self,*args, **kwargs):
