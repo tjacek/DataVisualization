@@ -5,8 +5,16 @@ from sklearn.neighbors import KernelDensity
 from sklearn.neighbors import BallTree
 from scipy.special import kl_div
 import seaborn as sns
+import dataset,utils
 
-import dataset
+@utils.DirFun({'in_path':0,'out_path':1})
+def density_plot(in_path,out_path):
+    print(in_path)
+    x=near_density(in_path,k=10) 
+    x_order,dens= compute_density(x,show=False,n_steps=100)
+    fig, ax = plt.subplots()
+    ax.plot(x_order,dens)
+    plt.savefig(out_path)
 
 def near_density(in_path,k=10):
     data=dataset.read_csv(in_path)
@@ -19,16 +27,12 @@ def near_density(in_path,k=10):
         y_i=data.y[i]
         near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
         same_class.append(np.mean(near))
-    return same_class
+    return np.array(same_class)
 
-def compute_density(data,dim,cat=None,show=False,n_steps=100):
-    if(cat is None):
-        x_i=data.X[:,dim]
-    else:
-        x_i=data.get_cat(cat)[:,dim]
-    x_i=x_i.reshape(-1, 1) 
-    kde = KernelDensity(kernel='gaussian', bandwidth=2).fit(x_i)
-    a_max,a_min=np.max(x_i),np.min(x_i)
+def compute_density(x,show=False,n_steps=100):
+    x=x.reshape(-1, 1)
+    kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(x)
+    a_max,a_min=np.max(x),np.min(x)
     delta= (a_max-a_min)/n_steps
     x_order=np.arange(n_steps)*delta
     x_order-=a_min
@@ -36,9 +40,28 @@ def compute_density(data,dim,cat=None,show=False,n_steps=100):
     dens=np.exp(log_dens)
     if(show):
         fig, ax = plt.subplots()
-        ax.plot(x_order,np.exp(log_dens))
+        ax.plot(x_order,dens)
         plt.show()
-    return dens
+    return x_order,dens
+
+#def compute_density(data,dim,cat=None,show=False,n_steps=100):
+#    if(cat is None):
+#        x_i=data.X[:,dim]
+#    else:
+#        x_i=data.get_cat(cat)[:,dim]
+#    x_i=x_i.reshape(-1, 1) 
+#    kde = KernelDensity(kernel='gaussian', bandwidth=2).fit(x_i)
+#    a_max,a_min=np.max(x_i),np.min(x_i)
+#    delta= (a_max-a_min)/n_steps
+#    x_order=np.arange(n_steps)*delta
+#    x_order-=a_min
+#    log_dens= kde.score_samples(x_order.reshape(-1, 1))
+#    dens=np.exp(log_dens)
+#    if(show):
+#        fig, ax = plt.subplots()
+#        ax.plot(x_order,np.exp(log_dens))
+#        plt.show()
+#    return dens
 
 def dim_matrix(data,cat_i=0):
     n_dims= data.dim()
@@ -74,6 +97,6 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    near_density("../uci/wine-quality-red")
+    density_plot("../uci","density_plot")
 #    data=dataset.read_csv("../uci/wine-quality-red")
 #    cat_matrix(data,dim_i=2)

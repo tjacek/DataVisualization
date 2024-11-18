@@ -15,21 +15,25 @@ def top_files(path):
     return paths
 
 class DirFun(object):
-    def __init__(self,dir_args=None,input_arg='in_path'):
+    def __init__(self,
+                 dir_args=None,
+                 input_arg='in_path',
+                 out_arg='out_path'):
         if(dir_args is None):
             dir_args={"in_path":0}
         self.dir_args=dir_args
         self.input_arg=input_arg
+        self.out_arg=out_arg
 
     def __call__(self, fun):
         @wraps(fun)
         def decor_fun(*args, **kwargs):
             old_values=self.get_input(*args, **kwargs)
             in_path=old_values[self.input_arg]
-            if(not os.path.exists(in_path)):
-                make_dir(in_path)
             if(not os.path.isdir(in_path)):
                 return fun(*args, **kwargs)
+            if(self.out_arg in old_values):
+                make_dir(old_values[self.out_arg])
             result_dict={}
             for in_i in top_files(in_path):
                 id_i=in_i.split('/')[-1]
