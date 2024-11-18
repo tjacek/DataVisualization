@@ -2,10 +2,24 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KernelDensity
+from sklearn.neighbors import BallTree
 from scipy.special import kl_div
 import seaborn as sns
 
 import dataset
+
+def near_density(in_path,k=10):
+    data=dataset.read_csv(in_path)
+    tree=BallTree(data.X)
+    indces= tree.query(data.X,
+                       k=k+1,
+                       return_distance=False)
+    same_class=[]
+    for i,ind_i in enumerate(indces):
+        y_i=data.y[i]
+        near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
+        same_class.append(np.mean(near))
+    return same_class
 
 def compute_density(data,dim,cat=None,show=False,n_steps=100):
     if(cat is None):
@@ -60,5 +74,6 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    data=dataset.read_csv("uci/cleveland")
-    cat_matrix(data,dim_i=2)
+    near_density("../uci/wine-quality-red")
+#    data=dataset.read_csv("../uci/wine-quality-red")
+#    cat_matrix(data,dim_i=2)
