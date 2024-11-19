@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import dataset,reduction,utils
-import deep,clustering #,gauss
+import deep,clustering,density 
 
 def reduce_plots(data,out_path=None,transform=None,show=False):
     if(type(data)==str):
@@ -41,6 +41,29 @@ def clustering_plots(in_path,
         if(out_path):
             plt.savefig(f'{out_path}/{transform_type_i}')
 
+@utils.DirFun({'in_path':0,'out_path':1})
+def nn_plots(in_path,
+             out_path=None,
+             transform=None,
+             k=10):
+    data=dataset.read_csv(in_path)
+    same_class=density.near_density(in_path=data,
+                                    k=k,
+                                    all_cats=True)
+    same_class*=5
+    same_class=same_class.astype(int)
+    col=['b','y','g','grey','r']
+    cmap = colors.ListedColormap(col)
+    utils.make_dir(out_path)
+    for transform_type_i,data_i in transorm_iter(data,transform):
+        print(transform_type_i)
+        text_plot(data=data_i,
+                  cmap=cmap,
+                  labels=same_class,
+                  title=transform_type_i,
+                  comment=f"k={k}")
+        if(out_path):
+            plt.savefig(f'{out_path}/{transform_type_i}')
 def transorm_iter(data,transform):
     if(transform is None):
         transform=["pca","spectral","lda","lle","mda","tsne","ensemble"]
@@ -116,9 +139,7 @@ def make_color_map(n_cats):
     return color_helper
 
 if __name__ == '__main__':
-#    PlotGenerator()("../uci","reduction")
-#     simple_plot(in_path="../uci/newthyroid")
-    clustering_plots("../uci/cmc",out_path="clustering2",clust_type="spectral")
+    nn_plots("../uci",out_path="nn_plot")
 #    params={"data":"../uci",
 #            "result":"uci_exp/aggr_gauss",
 #            "feats":"base",
