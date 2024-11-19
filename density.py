@@ -22,11 +22,13 @@ def density_plot(in_path,out_path,k=10,all_cats=True):
         plt.savefig(out_path)
     else:
         fig, ax = plt.subplots()
+        x=np.arange(100)*0.01
         for i,near_i in enumerate(near_mean):
-            x_i,dens_i= compute_density(near_i,
-                                        show=False,
-                                        n_steps=100)
-            ax.plot(x_i, dens_i, label=f"{i}-{len(near_i)}")
+            _,dens_i= compute_density(value=near_i,
+                                      x=x,
+                                      show=False,
+                                      n_steps=100)
+            ax.plot(x, dens_i, label=f"{i}-{len(near_i)}")
         plt.legend()
         plt.savefig(out_path)
 
@@ -46,18 +48,20 @@ def near_density(in_path,k=10,all_cats=True):
         return np.array(same_class)
     return [np.array(cat) for cat in same_class]
 
-def compute_density(x,show=False,n_steps=100):
-    x=x.reshape(-1, 1)
-    kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(x)
-    a_max,a_min=np.max(x),np.min(x)
-    delta= (a_max-a_min)/n_steps
-    x_order=np.arange(n_steps)*delta
-    x_order-=a_min
-    log_dens= kde.score_samples(x_order.reshape(-1, 1))
+def compute_density(value,x=None,show=False,n_steps=100):
+    value=value.reshape(-1, 1)
+    kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(value)
+    if(x is None):
+        a_max,a_min=np.max(value),np.min(value)
+        delta= (a_max-a_min)/n_steps
+        x=np.arange(n_steps)*delta
+        x-=a_min
+#    x_order=np.arange(100)*0.01
+    log_dens= kde.score_samples(x.reshape(-1, 1))
     dens=np.exp(log_dens)
     if(show):
-        simple_plot(x_order,dens)
-    return x_order,dens
+        simple_plot(x,dens)
+    return x,dens
 
 def simple_plot(x_order,dens):
     fig, ax = plt.subplots()
