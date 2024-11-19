@@ -26,7 +26,7 @@ def density_plot(in_path,out_path,k=10,all_cats=True):
             x_i,dens_i= compute_density(near_i,
                                         show=False,
                                         n_steps=100)
-            ax.plot(x_i, dens_i, label=str(i))
+            ax.plot(x_i, dens_i, label=f"{i}-{len(near_i)}")
         plt.legend()
         plt.savefig(out_path)
 
