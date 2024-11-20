@@ -52,8 +52,11 @@ class ClassEnsemble(Ensemble):
 class CEnsembleFactory(object):
     def __init__(self,data):
         self.weight_dict=dataset.get_class_weights(data.y)
+        self.counter=0
 
     def __call__(self):
+        print(self.counter)
+        self.counter+=1
         return ClassEnsemble(weight_dict=self.weight_dict)
 
 class GaussEnsemble(Ensemble):
@@ -102,38 +105,60 @@ class GEnsembleFactory(object):
         return 	GaussEnsemble(k=self.k)
 
 @utils.elapsed_time
-def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
+def compare_ensemble(in_path,
+                     ens_factory,
+                     n_splits=10,
+                     n_repeats=1):
     data=dataset.read_csv(in_path)
-    if(deep_ens is None):
-        deep_ens=GaussEnsemble(k=3,verbose=verbose)
-    def helper(split):
-        deep_ens.reset()
-        result_ens=split.eval(data,deep_ens)
-        nn=deep.ClfCNN(verbose=verbose)
-        result_nn=split.eval(data,nn)
-        print(f"n_clf{len(deep_ens)}")
-        return result_nn,result_ens
-    protocol=exp.UnaggrSplit(n_splits=10,
-    	                     n_repeats=1)
+    protocol=exp.AggrSplit(n_splits,n_repeats)
     splits=protocol.get_split(data)
-    if(single):
-        return helper(splits[0])
-    else:
-        results=[helper(split_i) for split_i in splits]
-        partial_nn,partial_ens=list(zip(*results))
-        result_nn=dataset.unify_results(partial_nn)
-        result_ens=dataset.unify_results(partial_ens)
-        return result_nn,result_ens
+    clfs=[("RF",exp.get_clf("RF")[1]),
+          ("current_ens",ens_factory(data))]
+    results={}
+    for clf_type,clf_i in clfs:
+        results[clf_type]=[split_k.eval(data,clf_i())  
+                              for split_k in splits]
+    for clf_type,results_i in results.items():
+        print(results_i)
+        acc=np.mean([result_j.get_acc() for result_j in results_i])
+        balance=np.mean([result_j.get_balanced() for result_j in results_i])
+        print(f"{clf_type},{acc},{balance}")
+
+#@utils.elapsed_time
+#def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
+#    data=dataset.read_csv(in_path)
+#    if(deep_ens is None):
+#        deep_ens=GaussEnsemble(k=3,verbose=verbose)
+#    def helper(split):
+#        deep_ens.reset()
+#        result_ens=split.eval(data,deep_ens)
+#        nn=deep.ClfCNN(verbose=verbose)
+#        result_nn=split.eval(data,nn)
+#        print(f"n_clf{len(deep_ens)}")
+#        return result_nn,result_ens
+#    protocol=exp.UnaggrSplit(n_splits=10,
+#    	                     n_repeats=1)
+#    splits=protocol.get_split(data)
+#    if(single):
+#        return helper(splits[0])
+#    else:
+#        results=[helper(split_i) for split_i in splits]
+#        partial_nn,partial_ens=list(zip(*results))
+#        result_nn=dataset.unify_results(partial_nn)
+#        result_ens=dataset.unify_results(partial_ens)
+#        return result_nn,result_ens
 
 if __name__ == '__main__':
-    deep_ens=ClassEnsemble()
-    nn,ens=compare_ensemble("../uci/cleveland",
-    	                    deep_ens=None,#deep_ens,
-    	                    single=False,
-    	                    verbose=0)
-    nn.report()
-    ens.report()
-    print(nn.get_acc())
-    print(ens.get_acc())
-    print(nn.get_balanced())
-    print(ens.get_balanced())
+    compare_ensemble(in_path="../uci/wine-quality-red",
+                     ens_factory=CEnsembleFactory)
+#    deep_ens=ClassEnsemble()
+#    nn,ens=compare_ensemble("../uci/cleveland",
+#    	                    deep_ens=None,#deep_ens,
+#    	                    single=False,
+#    	                    verbose=0)
+#    nn.report()
+#    ens.report()
+#    print(nn.get_acc())
+#    print(ens.get_acc())
+#    print(nn.get_balanced())
+#    print(ens.get_balanced())
