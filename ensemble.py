@@ -1,5 +1,7 @@
 import numpy as np
 import deep,gauss,dataset,exp,utils
+import os 
+
 
 class Ensemble(object):
     def __init__(self,full=True, verbose=0):
@@ -108,7 +110,10 @@ class GEnsembleFactory(object):
 def compare_ensemble(in_path,
                      ens_factory,
                      n_splits=10,
-                     n_repeats=1):
+                     n_repeats=1,
+                     use_cpu=True):
+    if(use_cpu):
+        os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
     data=dataset.read_csv(in_path)
     protocol=exp.AggrSplit(n_splits,n_repeats)
     splits=protocol.get_split(data)
@@ -123,30 +128,6 @@ def compare_ensemble(in_path,
         acc=np.mean([result_j.get_acc() for result_j in results_i])
         balance=np.mean([result_j.get_balanced() for result_j in results_i])
         print(f"{clf_type},{acc},{balance}")
-
-#@utils.elapsed_time
-#def compare_ensemble(in_path,deep_ens=None,single=True,verbose=0):
-#    data=dataset.read_csv(in_path)
-#    if(deep_ens is None):
-#        deep_ens=GaussEnsemble(k=3,verbose=verbose)
-#    def helper(split):
-#        deep_ens.reset()
-#        result_ens=split.eval(data,deep_ens)
-#        nn=deep.ClfCNN(verbose=verbose)
-#        result_nn=split.eval(data,nn)
-#        print(f"n_clf{len(deep_ens)}")
-#        return result_nn,result_ens
-#    protocol=exp.UnaggrSplit(n_splits=10,
-#    	                     n_repeats=1)
-#    splits=protocol.get_split(data)
-#    if(single):
-#        return helper(splits[0])
-#    else:
-#        results=[helper(split_i) for split_i in splits]
-#        partial_nn,partial_ens=list(zip(*results))
-#        result_nn=dataset.unify_results(partial_nn)
-#        result_ens=dataset.unify_results(partial_ens)
-#        return result_nn,result_ens
 
 if __name__ == '__main__':
     compare_ensemble(in_path="../uci/wine-quality-red",
