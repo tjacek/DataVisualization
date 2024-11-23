@@ -68,6 +68,22 @@ def simple_plot(x_order,dens):
     ax.plot(x_order,dens)
     plt.show()
 
+def nn_size_plot(in_path,k=10):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path):
+        near_mean=near_density(in_path,
+                           k=k,
+                           all_cats=False)
+        return [ (near_i.shape[0],np.median(near_i)) 
+                    for i,near_i in enumerate(near_mean)]
+    near_dict=helper(in_path)
+    points=[]
+    for _,x_i in near_dict.items():
+        points+=x_i
+    points=np.array(points)
+    plt.scatter(x=points[:,0], y=points[:,1])
+    plt.show()
+
 #def dim_matrix(data,cat_i=0):
 #    n_dims= data.dim()
 #    matrix=[]
@@ -102,4 +118,5 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    density_plot("../uci","density_cat",all_cats=False)
+    nn_size_plot("../uci",k=10)
+#    density_plot("../uci","density_cat",all_cats=False)
