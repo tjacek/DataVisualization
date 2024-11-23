@@ -70,3 +70,10 @@ def elapsed_time(fun):
         print(f"Time:{end-start:.4f}")
         return value
     return helper
+
+def find_dirs(in_path, name):
+    filtered=[]
+    for root, dirs, files in os.walk(in_path):
+        if(name in root):
+            filtered.append(root)
+    return filtered
