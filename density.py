@@ -93,6 +93,22 @@ def acc_plot(data_path,result_path,clf="class_ens",k=10):
         return [ (i,np.median(near_i)) 
                     for i,near_i in enumerate(near_mean)]
     near_dict=nn_helper(data_path)
+    if(type(clf)==str):
+        clf=[clf]    
+    plt.title("Individual classes in uci datasets")
+    for clf_i in clf:
+        points_i=acc_points(clf=clf_i,
+                            near_dict=near_dict,
+                            result_path=result_path)
+        plt.scatter(x=points_i[:,0], 
+                    y=points_i[:,1],
+                    label=clf_i)
+    plt.xlabel(f"Same class in nn (k={k})")
+    plt.ylabel("Partial Acc")
+    plt.legend()
+    plt.show()
+
+def acc_points(clf,near_dict,result_path):
     @utils.DirFun({'in_path':0})
     def acc_helper(in_path):
         if(not os.path.isdir(in_path)):
@@ -115,11 +131,7 @@ def acc_plot(data_path,result_path,clf="class_ens",k=10):
         for j,nn_j in near_dict[key_i]:
             acc_j=acc_dict[key_i][j]
             points.append((nn_j,acc_j))
-    points=np.array(points)
-    plt.title(clf)
-    plt.scatter(x=points[:,0], y=points[:,1])
-    plt.show()
-
+    return np.array(points)
 #def dim_matrix(data,cat_i=0):
 #    n_dims= data.dim()
 #    matrix=[]
@@ -154,6 +166,7 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    acc_plot("../uci","uci_exp/aggr_gauss")
+    acc_plot("../uci","uci_exp/aggr_gauss",
+             clf=["RF",'class_ens'])
 #    nn_size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)
