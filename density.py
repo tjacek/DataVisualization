@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd 
-import matplotlib.pyplot as plt
+import os,matplotlib.pyplot as plt
 from sklearn.neighbors import KernelDensity
 from sklearn.neighbors import BallTree
 from scipy.special import kl_div
@@ -68,19 +68,55 @@ def simple_plot(x_order,dens):
     ax.plot(x_order,dens)
     plt.show()
 
-def nn_size_plot(in_path,k=10):
+def size_plot(in_path,k=10):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
         near_mean=near_density(in_path,
-                           k=k,
-                           all_cats=False)
+                               k=k,
+                               all_cats=False)
         return [ (near_i.shape[0],np.median(near_i)) 
-                    for i,near_i in enumerate(near_mean)]
+                    for near_i in enumerate(near_mean)]
     near_dict=helper(in_path)
     points=[]
     for _,x_i in near_dict.items():
         points+=x_i
     points=np.array(points)
+    plt.scatter(x=points[:,0], y=points[:,1])
+    plt.show()
+
+def acc_plot(data_path,result_path,clf="class_ens",k=10):
+    @utils.DirFun({'in_path':0})
+    def nn_helper(in_path):
+        near_mean=near_density(in_path,
+                               k=k,
+                               all_cats=False)
+        return [ (i,np.median(near_i)) 
+                    for i,near_i in enumerate(near_mean)]
+    near_dict=nn_helper(data_path)
+    @utils.DirFun({'in_path':0})
+    def acc_helper(in_path):
+        if(not os.path.isdir(in_path)):
+            return None
+        path=utils.find_dirs(in_path ,clf)[0]
+        results=dataset.read_result(path)
+        acc=[result_i.all_partial_acc()
+                for result_i in results]
+        acc=np.array(acc)
+        acc=np.mean(acc,axis=0)
+        return acc  
+    acc_dict=acc_helper(result_path)
+    acc_dict={path_i.split("/")[2]:value_i  
+            for path_i,value_i in acc_dict.items()
+                if(not value_i is None)}
+    near_dict={path_i.split("/")[2]:value_i  
+            for path_i,value_i in near_dict.items()}
+    points=[]
+    for  key_i in acc_dict:
+        for j,nn_j in near_dict[key_i]:
+            acc_j=acc_dict[key_i][j]
+            points.append((nn_j,acc_j))
+    points=np.array(points)
+    plt.title(clf)
     plt.scatter(x=points[:,0], y=points[:,1])
     plt.show()
 
@@ -118,5 +154,6 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    nn_size_plot("../uci",k=10)
+    acc_plot("../uci","uci_exp/aggr_gauss")
+#    nn_size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)

@@ -3,6 +3,8 @@ import numpy as np
 from sklearn.decomposition import PCA
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score,classification_report,balanced_accuracy_score
+import os
+import utils
 
 class Dataset(object):
     def __init__(self,X,y=None):
@@ -50,14 +52,11 @@ class Dataset(object):
     def max(self):
         return np.amax(self.X,axis=0)
 
-    def class_weight(self):
-        params={}
+    def class_percent(self):
+        params,total_size={},float(len(self))
         for i in range(self.n_cats()):
             size_i= sum((self.y==i).astype(int))
-            params[i]= 1.0/size_i
-        Z= sum(list(params.values()))
-        for i in params:
-            params[i]= params[i]/Z
+            params[i]=size_i/total_size
         return params
 
     def selection(self,indices):
@@ -86,6 +85,12 @@ class Result(object):
                 for pred_i,true_i in zip(self.y_pred,self.y_true)]
         return np.array(pos)
 
+    def partial_acc(self,i):
+        cat_ind=(self.y_true==i)
+        true_pos=(self.y_pred[cat_ind]==self.y_true[cat_ind])
+        true_pos=true_pos.astype(int)
+        return np.sum(true_pos)/len(true_pos)
+
     def save(self,out_path):
         y_pair=np.array([self.y_pred,self.y_true])
         np.savez(out_path,y_pair)
@@ -110,6 +115,8 @@ class WeightDict(dict):
 def read_result(in_path:str):
     if(type(in_path)==Result):
         return in_path
+    if(os.path.isdir(in_path)):
+        return [read_result(path_i) for path_i in utils.top_files(in_path)]
     raw=list(np.load(in_path).values())[0]
     y_pred,y_true=raw[0],raw[1]
     return Result(y_pred=y_pred,
