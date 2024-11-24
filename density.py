@@ -85,14 +85,7 @@ def size_plot(in_path,k=10):
     plt.show()
 
 def acc_plot(data_path,result_path,clf="class_ens",k=10):
-    @utils.DirFun({'in_path':0})
-    def nn_helper(in_path):
-        near_mean=near_density(in_path,
-                               k=k,
-                               all_cats=False)
-        return [ (i,np.median(near_i)) 
-                    for i,near_i in enumerate(near_mean)]
-    near_dict=nn_helper(data_path)
+    near_dict=get_near_dict(data_path,k=k)
     if(type(clf)==str):
         clf=[clf]    
     plt.title("Individual classes in uci datasets")
@@ -107,6 +100,35 @@ def acc_plot(data_path,result_path,clf="class_ens",k=10):
     plt.ylabel("Partial Acc")
     plt.legend()
     plt.show()
+
+def diff_acc_plot(data_path,result_path,clf_pair,k=10):
+    if(len(clf_pair)<2):
+        raise Exception("Two clf required")
+    near_dict=get_near_dict(data_path,k=k)
+    first_points=acc_points(clf=clf_pair[0],
+                            near_dict=near_dict,
+                            result_path=result_path)
+    second_points=acc_points(clf=clf_pair[1],
+                             near_dict=near_dict,
+                             result_path=result_path)
+    x=first_points[:,0]
+    y=first_points[:,1]-second_points[:,1]
+    plt.title(f"Diff between {clf_pair[0]} -{clf_pair[1]}")
+    plt.scatter(x=x[y<0], y=y[y<0])
+    plt.scatter(x=x[y>0], y=y[y>0])
+    plt.xlabel(f"Same class in nn (k={k})")
+    plt.ylabel("Partial Acc Diff")
+    plt.show()
+
+def get_near_dict(data_path,k=10):
+    @utils.DirFun({'in_path':0})
+    def nn_helper(in_path):
+        near_mean=near_density(in_path,
+                               k=k,
+                               all_cats=False)
+        return [ (i,np.median(near_i)) 
+                    for i,near_i in enumerate(near_mean)]
+    return nn_helper(data_path)
 
 def acc_points(clf,near_dict,result_path):
     @utils.DirFun({'in_path':0})
@@ -132,6 +154,7 @@ def acc_points(clf,near_dict,result_path):
             acc_j=acc_dict[key_i][j]
             points.append((nn_j,acc_j))
     return np.array(points)
+
 #def dim_matrix(data,cat_i=0):
 #    n_dims= data.dim()
 #    matrix=[]
@@ -166,7 +189,7 @@ def show_matrix(matrix):
     plt.show()
 
 if __name__ == '__main__':
-    acc_plot("../uci","uci_exp/aggr_gauss",
-             clf=["RF",'class_ens'])
+    diff_acc_plot("../uci","uci_exp/aggr_gauss",
+             clf_pair=["RF",'class_ens',"RF"])
 #    nn_size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)
