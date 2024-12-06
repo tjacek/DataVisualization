@@ -158,6 +158,9 @@ def acc_points(clf,near_dict,result_path):
 
 def build_plot(in_path):
     conf=utils.read_conf(in_path)
+    if(conf["type"]=="acc"):
+        acc_plot(conf["data"],"uci_exp/aggr_gauss",
+             clf=['RF',"deep",'class_ens'])
     print(conf)
 
 #def show_matrix(matrix):
