@@ -1,6 +1,6 @@
 import os.path
 from functools import wraps
-import time
+import time,json
 
 def make_dir(path):
     if(not os.path.isdir(path)):
@@ -13,6 +13,11 @@ def top_files(path):
         paths=path
     paths=sorted(paths)
     return paths
+
+def read_conf(in_path):
+    with open(in_path, 'r') as file:
+        data = json.load(file)
+        return data
 
 class DirFun(object):
     def __init__(self,

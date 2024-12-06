@@ -5,6 +5,7 @@ from sklearn.neighbors import KernelDensity
 from sklearn.neighbors import BallTree
 from scipy.special import kl_div
 import seaborn as sns
+import argparse
 import dataset,utils
 
 @utils.DirFun({'in_path':0,'out_path':1})
@@ -155,41 +156,27 @@ def acc_points(clf,near_dict,result_path):
             points.append((nn_j,acc_j))
     return np.array(points)
 
-#def dim_matrix(data,cat_i=0):
-#    n_dims= data.dim()
-#    matrix=[]
-#    all_dens=[ compute_density(data,dim_j,cat_i) 
-#        for dim_j in range(n_dims)]
-#    for dens_i in all_dens:
-#        matrix.append([])
-#        for dens_j in all_dens:
-#            kl_ij=np.mean(kl_div(dens_i,dens_j))
-#            matrix[-1].append(kl_ij)
-#    show_matrix(matrix)
+def build_plot(in_path):
+    conf=utils.read_conf(in_path)
+    print(conf)
 
-#def cat_matrix(data,dim_i=0):
-#    matrix=[]
-#    all_dens=[ compute_density(data,dim_i,cat_j) 
-#        for cat_j in range(data.n_cats())]
-#    for dens_i in all_dens:
-#        matrix.append([])
-#        for dens_j in all_dens:
-#            kl_ij=np.mean(kl_div(dens_i,dens_j))
-#            matrix[-1].append(kl_ij)
-#    show_matrix(matrix)
-
-def show_matrix(matrix):
-    matrix=np.array(matrix)
-    matrix[np.isnan(matrix)]=0.0
-    matrix[matrix==np.inf]=0
-    matrix/= np.sum(matrix)
-    print(np.around(matrix,decimals=2))
-    plt.figure(figsize = (10,7))
-    sns.heatmap(matrix, annot=True)
-    plt.show()
+#def show_matrix(matrix):
+#    matrix=np.array(matrix)
+#    matrix[np.isnan(matrix)]=0.0
+#    matrix[matrix==np.inf]=0
+#    matrix/= np.sum(matrix)
+#    print(np.around(matrix,decimals=2))
+#    plt.figure(figsize = (10,7))
+#    sns.heatmap(matrix, annot=True)
+#    plt.show()
 
 if __name__ == '__main__':
-    diff_acc_plot("../uci","uci_exp/aggr_gauss",
-             clf_pair=["RF",'class_ens',"RF"])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", type=str, default="json/purity.js")
+    args = parser.parse_args()
+    exp=build_plot(args.input)
+
+#    acc_plot("../uci","uci_exp/aggr_gauss",
+#             clf=['RF',"deep",'class_ens'])
 #    nn_size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)

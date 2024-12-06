@@ -163,13 +163,13 @@ def prepare_path(out_path,desc):
     utils.make_dir(out_i)
     return out_i
 
-def read_conf(in_path):
-    with open(in_path, 'r') as file:
-        data = json.load(file)
-        return data
+#def read_conf(in_path):
+#    with open(in_path, 'r') as file:
+#        data = json.load(file)
+#        return data
 
 def build_exp(in_path:str):
-    conf=read_conf(in_path)
+    conf=utils.read_conf(in_path)
     if("data" in conf):
         data_dir=conf["data_dir"]
         input_paths=[ f"{data_dir}/{path_i}"
