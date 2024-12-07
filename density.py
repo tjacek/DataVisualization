@@ -8,13 +8,26 @@ import seaborn as sns
 import argparse
 import dataset,utils
 
+class PurityData(object):
+    def __init__(self,cats):
+        self.cats=cats
+
+    def stats(self,type:str):
+        if(type=="median"):
+            stat_fun=np.median
+        if(type=="mean"):
+            stat_fun=np.mean
+        return [ stat_fun(cat_i) for cat_i in self.cats]
+
 def purity_dataset(data_path):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
         data=dataset.read_csv(in_path)
-        return knn_purity(data)
+        return PurityData(knn_purity(data))
     purity_dict=helper(data_path)
-    print(purity_dict)
+    for name_i,purity_i in purity_dict.items():
+        print(name_i)
+        print(purity_i.stats("mean"))
 
 def knn_purity(data,k=10):
     tree=BallTree(data.X)
