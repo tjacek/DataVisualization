@@ -85,19 +85,19 @@ def size_plot(in_path,k=10):
     plt.scatter(x=points[:,0], y=points[:,1])
     plt.show()
 
-def acc_plot(data_path,result_path,clf="class_ens",k=10):
+def acc_plot(data_path,result_path,clfs="class_ens",k=10):
     near_dict=get_near_dict(data_path,k=k)
-    if(type(clf)==str):
-        clf=[clf]    
+    if(type(clfs)==str):
+        clfs=[clfs]    
     plt.title("Individual classes in uci datasets")
-    for clf_i in clf:
+    for clf_i in clfs:
         points_i=acc_points(clf=clf_i,
                             near_dict=near_dict,
                             result_path=result_path)
         plt.scatter(x=points_i[:,0], 
                     y=points_i[:,1],
                     label=clf_i)
-    plt.xlabel(f"Same class in nn (k={k})")
+    plt.xlabel(f"knn (k={k})")
     plt.ylabel("Partial Acc")
     plt.legend()
     plt.show()
@@ -117,7 +117,7 @@ def diff_acc_plot(data_path,result_path,clf_pair,k=10):
     plt.title(f"Diff between {clf_pair[0]} -{clf_pair[1]}")
     plt.scatter(x=x[y<0], y=y[y<0])
     plt.scatter(x=x[y>0], y=y[y>0])
-    plt.xlabel(f"Same class in nn (k={k})")
+    plt.xlabel(f"knn-purity (k={k})")
     plt.ylabel("Partial Acc Diff")
     plt.show()
 
@@ -159,8 +159,15 @@ def acc_points(clf,near_dict,result_path):
 def build_plot(in_path):
     conf=utils.read_conf(in_path)
     if(conf["type"]=="acc"):
-        acc_plot(conf["data"],"uci_exp/aggr_gauss",
-             clf=['RF',"deep",'class_ens'])
+        acc_plot(data_path=conf["data_dir"],
+                 result_path=conf["result_path"],
+                 clfs=conf["clfs"],
+                 k=conf["k"])
+    if(conf["type"]=="acc"):
+        density_plot(in_path=conf["data_dir"],
+                     out_path=conf["output_path"],
+                     k=conf["k"],
+                     all_cats=False)
     print(conf)
 
 #def show_matrix(matrix):
@@ -178,8 +185,5 @@ if __name__ == '__main__':
     parser.add_argument("--input", type=str, default="json/purity.js")
     args = parser.parse_args()
     exp=build_plot(args.input)
-
-#    acc_plot("../uci","uci_exp/aggr_gauss",
-#             clf=['RF',"deep",'class_ens'])
 #    nn_size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)
