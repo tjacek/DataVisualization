@@ -8,6 +8,27 @@ import seaborn as sns
 import argparse
 import dataset,utils
 
+def purity_dataset(data_path):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path):
+        data=dataset.read_csv(in_path)
+        return knn_purity(data)
+    purity_dict=helper(data_path)
+    print(purity_dict)
+
+def knn_purity(data,k=10):
+    tree=BallTree(data.X)
+    indces= tree.query(data.X,
+                       k=k+1,
+                       return_distance=False)
+    purity=[[] for _ in range(data.n_cats())]
+    for i,ind_i in enumerate(indces):
+        y_i=data.y[i]
+        near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
+        purity[int(y_i)].append(np.mean(near))
+    return purity
+    
+
 @utils.DirFun({'in_path':0,'out_path':1})
 def density_plot(in_path,out_path,k=10,all_cats=True):
     print(in_path)
@@ -168,6 +189,8 @@ def build_plot(in_path):
                      out_path=conf["output_path"],
                      k=conf["k"],
                      all_cats=False)
+    if(conf["type"]=='data'):
+        purity_dataset(data_path=conf['data_dir'])
     print(conf)
 
 #def show_matrix(matrix):
