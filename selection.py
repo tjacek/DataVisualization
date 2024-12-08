@@ -3,19 +3,33 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.feature_selection import SelectFromModel
 #from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import pandas as pd
 import dataset,utils
 
-def find_disc(in_path):
+def find_disc(in_path,n_components=2):
+    X,y=read_data(in_path)
+    clf = LinearDiscriminantAnalysis(n_components=None)
+    X_t=clf.fit(X,y).transform(X)
+    print(clf.coef_)
+
+def find_coff(in_path):
+    X,y=read_data(in_path)
+    clf=LogisticRegression(solver='lbfgs',
+                           penalty=None)
+    clf.fit(X,y)
+    y_pred=clf.predict(X)
+    norm_coff= (clf.coef_/np.sum(np.abs(clf.coef_)))
+    print( list(zip(y,y_pred)) )
+    print(norm_coff)
+    return norm_coff
+
+def read_data(in_path):
     df=pd.read_csv(in_path)
     y=df['target'].to_numpy()
     X=df[df.columns.difference(['data','target'])]
     X=X.to_numpy()
-    clf=LogisticRegression()
-    clf.fit(X,y)
-    y_pred=clf.predict(X)
-    print(y)
-    print(y_pred)
+    return X,y
 
 def feat_comp(in_path):
     result_dict=tree_impor(in_path,verbose=False)
@@ -50,4 +64,4 @@ def gini(x):
         total += np.sum(np.abs(xi - x[i:]))
     return total / (len(x)**2 * np.mean(x))
 
-find_disc(in_path="purity.csv")
+find_disc(in_path="purity/ens.csv")
