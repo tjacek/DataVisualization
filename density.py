@@ -12,22 +12,34 @@ class PurityData(object):
     def __init__(self,cats):
         self.cats=cats
 
-    def stats(self,type:str):
+    def stats(self,type="mean",single=False):
         if(type=="median"):
             stat_fun=np.median
         if(type=="mean"):
             stat_fun=np.mean
+        if(single):
+            points=sum(self.cats,[])
+            return stat_fun(points)
         return [ stat_fun(cat_i) for cat_i in self.cats]
+
+def basic_stats(vector):
+    return [ stat_i(vector)
+        for stat_i in [np.mean,np.median,np.amin,np.amax]] 
 
 def purity_dataset(data_path):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
-        data=dataset.read_csv(in_path)
-        return PurityData(knn_purity(data))
+        data_i = dataset.read_csv(in_path)
+        purity_i = PurityData(knn_purity(data_i))
+        raw_purity=purity_i.stats("mean")
+        percent_i= list(data_i.class_percent().values())
+        features=basic_stats(raw_purity)
+        features+=basic_stats(percent_i)
+        return features
     purity_dict=helper(data_path)
     for name_i,purity_i in purity_dict.items():
         print(name_i)
-        print(purity_i.stats("mean"))
+        print(purity_i)
 
 def knn_purity(data,k=10):
     tree=BallTree(data.X)
