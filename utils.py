@@ -19,6 +19,9 @@ def read_conf(in_path):
         data = json.load(file)
         return data
 
+def cross(A, B):
+    return [a+b for a in A for b in B]
+
 class DirFun(object):
     def __init__(self,
                  dir_args=None,

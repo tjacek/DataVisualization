@@ -26,7 +26,7 @@ def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
 
-def purity_dataset(data_path):
+def purity_dataset(data_path,out_path=None):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
         data_i = dataset.read_csv(in_path)
@@ -37,9 +37,15 @@ def purity_dataset(data_path):
         features+=basic_stats(percent_i)
         return features
     purity_dict=helper(data_path)
+    lines=[]
     for name_i,purity_i in purity_dict.items():
-        print(name_i)
-        print(purity_i)
+        id_i=name_i.split('/')[-1]
+        lines.append([id_i]+purity_i)
+    cols= utils.cross(["purity_","percent_"],
+                      ["mean","median","min","max"])
+    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
+    if(out_path):
+        df.to_csv(out_path)
 
 def knn_purity(data,k=10):
     tree=BallTree(data.X)
@@ -215,7 +221,8 @@ def build_plot(in_path):
                      k=conf["k"],
                      all_cats=False)
     if(conf["type"]=='data'):
-        purity_dataset(data_path=conf['data_dir'])
+        purity_dataset(data_path=conf['data_dir'],
+                       out_path="purity.csv")
     print(conf)
 
 #def show_matrix(matrix):
