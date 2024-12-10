@@ -26,6 +26,20 @@ def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
 
+
+def cats_by_purity(data_path,out_path):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path):
+        data_i = dataset.read_csv(in_path)
+        purity_i = PurityData(knn_purity(data_i))
+        raw_purity=purity_i.stats("mean")
+        return np.argsort(raw_purity)
+    purity_dict=helper(data_path)
+    for name_i,order_i in purity_dict.items():
+        line_i=[str(o) for o in order_i]
+        line_i=[name_i.split("/")[-1]]+line_i
+        print(",".join(line_i))
+
 def purity_dataset(data_path,out_path=None):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
@@ -109,7 +123,6 @@ def compute_density(value,x=None,show=False,n_steps=100):
         delta= (a_max-a_min)/n_steps
         x=np.arange(n_steps)*delta
         x-=a_min
-#    x_order=np.arange(100)*0.01
     log_dens= kde.score_samples(x.reshape(-1, 1))
     dens=np.exp(log_dens)
     if(show):
@@ -221,7 +234,8 @@ def build_plot(in_path):
                      k=conf["k"],
                      all_cats=False)
     if(conf["type"]=='data'):
-        purity_dataset(data_path=conf['data_dir'],
+#        purity_dataset
+        cats_by_purity(data_path=conf['data_dir'],
                        out_path="purity.csv")
     print(conf)
 
