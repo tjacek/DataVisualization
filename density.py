@@ -5,7 +5,7 @@ from sklearn.neighbors import KernelDensity
 from sklearn.neighbors import BallTree
 from scipy.special import kl_div
 import seaborn as sns
-import argparse
+import argparse,json
 import dataset,utils
 
 class PurityData(object):
@@ -26,19 +26,23 @@ def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
 
-
 def cats_by_purity(data_path,out_path):
     @utils.DirFun({'in_path':0})
     def helper(in_path):
         data_i = dataset.read_csv(in_path)
         purity_i = PurityData(knn_purity(data_i))
         raw_purity=purity_i.stats("mean")
-        return np.argsort(raw_purity)
+        return np.argsort(raw_purity).tolist()
     purity_dict=helper(data_path)
-    for name_i,order_i in purity_dict.items():
-        line_i=[str(o) for o in order_i]
-        line_i=[name_i.split("/")[-1]]+line_i
-        print(",".join(line_i))
+    purity_dict={ name_i.split("/")[-1]:value_i 
+            for name_i,value_i in purity_dict.items()}
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(purity_dict, f, ensure_ascii=False, indent=4)
+#    print(purity_dict)
+#    for name_i,order_i in purity_dict.items():
+#        line_i=[str(o) for o in order_i]
+#        line_i=[name_i.split("/")[-1]]+line_i
+#        print(",".join(line_i))
 
 def purity_dataset(data_path,out_path=None):
     @utils.DirFun({'in_path':0})
@@ -236,7 +240,7 @@ def build_plot(in_path):
     if(conf["type"]=='data'):
 #        purity_dataset
         cats_by_purity(data_path=conf['data_dir'],
-                       out_path="purity.csv")
+                       out_path="purity.json")
     print(conf)
 
 #def show_matrix(matrix):
