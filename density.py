@@ -22,6 +22,14 @@ class PurityData(object):
             return stat_fun(points)
         return [ stat_fun(cat_i) for cat_i in self.cats]
 
+    def density(self,type="mean",single=False):
+        stat_purity=self.stats(type=type,single=single)
+        if(single):
+            return compute_density(stat_purity,x=None,show=False,n_steps=100)
+        else:
+            return [ compute_density(stat_purity,x=None,show=False,n_steps=100)
+                       for cat_i in stat_purity]
+
 def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
@@ -38,11 +46,7 @@ def cats_by_purity(data_path,out_path):
             for name_i,value_i in purity_dict.items()}
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(purity_dict, f, ensure_ascii=False, indent=4)
-#    print(purity_dict)
-#    for name_i,order_i in purity_dict.items():
-#        line_i=[str(o) for o in order_i]
-#        line_i=[name_i.split("/")[-1]]+line_i
-#        print(",".join(line_i))
+
 
 def purity_dataset(data_path,out_path=None):
     @utils.DirFun({'in_path':0})
@@ -76,8 +80,29 @@ def knn_purity(data,k=10):
         near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
         purity[int(y_i)].append(np.mean(near))
     return purity
-    
 
+def compute_density(value,x=None,show=False,n_steps=100):
+    value=value.reshape(-1, 1)
+    kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(value)
+    if(x is None):
+        a_max,a_min=np.max(value),np.min(value)
+        delta= (a_max-a_min)/n_steps
+        x=np.arange(n_steps)*delta
+        x-=a_min
+    log_dens= kde.score_samples(x.reshape(-1, 1))
+    dens=np.exp(log_dens)
+    if(show):
+        simple_plot(x,dens)
+    return x,dens
+
+@utils.DirFun({'in_path':0,'out_path':1})
+def density_plot(in_path,out_path,k=10,all_cats=True):
+    print(in_path)
+    data_i = dataset.read_csv(in_path)
+    purity_i = PurityData(knn_purity(data_i))
+    raw_purity=purity_i.stats("mean",
+                              single=(not all_cats))
+    raise Exception(raw_purity)
 @utils.DirFun({'in_path':0,'out_path':1})
 def density_plot(in_path,out_path,k=10,all_cats=True):
     print(in_path)
@@ -103,35 +128,23 @@ def density_plot(in_path,out_path,k=10,all_cats=True):
         plt.legend()
         plt.savefig(out_path)
 
-def near_density(in_path,k=10,all_cats=True):
-    data=dataset.read_csv(in_path)
-    tree=BallTree(data.X)
-    indces= tree.query(data.X,
-                       k=k+1,
-                       return_distance=False)
-    same_class=[[] for _ in range(data.n_cats())]
-    for i,ind_i in enumerate(indces):
-        y_i=data.y[i]
-        near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
-        same_class[int(y_i)].append(np.mean(near))
-    if(all_cats):
-        same_class=sum(same_class,[])
-        return np.array(same_class)
-    return [np.array(cat) for cat in same_class]
+#def near_density(in_path,k=10,all_cats=True):
+#    data=dataset.read_csv(in_path)
+#    tree=BallTree(data.X)
+#    indces= tree.query(data.X,
+#                       k=k+1,
+#                       return_distance=False)
+#    same_class=[[] for _ in range(data.n_cats())]
+#    for i,ind_i in enumerate(indces):
+#        y_i=data.y[i]
+#        near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
+#        same_class[int(y_i)].append(np.mean(near))
+#    if(all_cats):
+#        same_class=sum(same_class,[])
+#        return np.array(same_class)
+#    return [np.array(cat) for cat in same_class]
 
-def compute_density(value,x=None,show=False,n_steps=100):
-    value=value.reshape(-1, 1)
-    kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(value)
-    if(x is None):
-        a_max,a_min=np.max(value),np.min(value)
-        delta= (a_max-a_min)/n_steps
-        x=np.arange(n_steps)*delta
-        x-=a_min
-    log_dens= kde.score_samples(x.reshape(-1, 1))
-    dens=np.exp(log_dens)
-    if(show):
-        simple_plot(x,dens)
-    return x,dens
+
 
 def simple_plot(x_order,dens):
     fig, ax = plt.subplots()
@@ -243,15 +256,6 @@ def build_plot(in_path):
                        out_path="purity.json")
     print(conf)
 
-#def show_matrix(matrix):
-#    matrix=np.array(matrix)
-#    matrix[np.isnan(matrix)]=0.0
-#    matrix[matrix==np.inf]=0
-#    matrix/= np.sum(matrix)
-#    print(np.around(matrix,decimals=2))
-#    plt.figure(figsize = (10,7))
-#    sns.heatmap(matrix, annot=True)
-#    plt.show()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
