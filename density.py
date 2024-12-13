@@ -33,6 +33,9 @@ class PurityData(object):
                                     x=x,show=False,n_steps=100)
                        for cat_i in self.cats]
 
+    def sizes(self):
+        return [len(cat_i) for cat_i in self.cats]
+
 def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
@@ -115,6 +118,11 @@ def density_plot(in_path,out_path,k=10,single=True):
         plt.legend()
         plt.savefig(out_path)
 
+def simple_plot(x_order,dens):
+    fig, ax = plt.subplots()
+    ax.plot(x_order,dens)
+    plt.show()
+
 #def near_density(in_path,k=10,all_cats=True):
 #    data=dataset.read_csv(in_path)
 #    tree=BallTree(data.X)
@@ -131,19 +139,13 @@ def density_plot(in_path,out_path,k=10,single=True):
 #        return np.array(same_class)
 #    return [np.array(cat) for cat in same_class]
 
-def simple_plot(x_order,dens):
-    fig, ax = plt.subplots()
-    ax.plot(x_order,dens)
-    plt.show()
-
 def size_plot(in_path,k=10):
     @utils.DirFun({'in_path':0})
-    def helper(in_path):
-        near_mean=near_density(in_path,
-                               k=k,
-                               all_cats=False)
-        return [ (near_i.shape[0],np.median(near_i)) 
-                    for near_i in enumerate(near_mean)]
+    def helper(in_path): 
+        data_i = dataset.read_csv(in_path)
+        purity_i = PurityData(knn_purity(data_i))
+        near=purity_i.stats(type="median",single=False)
+        return list(zip( purity_i.sizes(),near))
     near_dict=helper(in_path)
     points=[]
     for _,x_i in near_dict.items():
@@ -188,15 +190,15 @@ def diff_acc_plot(data_path,result_path,clf_pair,k=10):
     plt.ylabel("Partial Acc Diff")
     plt.show()
 
-def get_near_dict(data_path,k=10):
-    @utils.DirFun({'in_path':0})
-    def nn_helper(in_path):
-        near_mean=near_density(in_path,
-                               k=k,
-                               all_cats=False)
-        return [ (i,np.median(near_i)) 
-                    for i,near_i in enumerate(near_mean)]
-    return nn_helper(data_path)
+#def get_near_dict(data_path,k=10):
+#    @utils.DirFun({'in_path':0})
+#    def nn_helper(in_path):
+#        near_mean=near_density(in_path,
+#                               k=k,
+#                               all_cats=False)
+#        return [ (i,np.median(near_i)) 
+#                    for i,near_i in enumerate(near_mean)]
+#    return nn_helper(data_path)
 
 def acc_points(clf,near_dict,result_path):
     @utils.DirFun({'in_path':0})
@@ -245,6 +247,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, default="json/purity.js")
     args = parser.parse_args()
-    exp=build_plot(args.input)
-#    nn_size_plot("../uci",k=10)
+#    exp=build_plot(args.input)
+    size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)
