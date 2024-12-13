@@ -22,52 +22,20 @@ class PurityData(object):
             return stat_fun(points)
         return [ stat_fun(cat_i) for cat_i in self.cats]
 
-    def density(self,type="mean",single=False):
-        stat_purity=self.stats(type=type,single=single)
+    def density(self,single=False):
         if(single):
-            return compute_density(stat_purity,x=None,show=False,n_steps=100)
+            points=sum(self.cats,[])
+            return compute_density(value=np.array(points),
+                                   x=None,show=False,n_steps=100)
         else:
-            return [ compute_density(stat_purity,x=None,show=False,n_steps=100)
-                       for cat_i in stat_purity]
+            x=np.arange(100)*0.01
+            return [ compute_density(np.array(cat_i),
+                                    x=x,show=False,n_steps=100)
+                       for cat_i in self.cats]
 
 def basic_stats(vector):
     return [ stat_i(vector)
         for stat_i in [np.mean,np.median,np.amin,np.amax]] 
-
-def cats_by_purity(data_path,out_path):
-    @utils.DirFun({'in_path':0})
-    def helper(in_path):
-        data_i = dataset.read_csv(in_path)
-        purity_i = PurityData(knn_purity(data_i))
-        raw_purity=purity_i.stats("mean")
-        return np.argsort(raw_purity).tolist()
-    purity_dict=helper(data_path)
-    purity_dict={ name_i.split("/")[-1]:value_i 
-            for name_i,value_i in purity_dict.items()}
-    with open(out_path, 'w', encoding='utf-8') as f:
-        json.dump(purity_dict, f, ensure_ascii=False, indent=4)
-
-
-def purity_dataset(data_path,out_path=None):
-    @utils.DirFun({'in_path':0})
-    def helper(in_path):
-        data_i = dataset.read_csv(in_path)
-        purity_i = PurityData(knn_purity(data_i))
-        raw_purity=purity_i.stats("mean")
-        percent_i= list(data_i.class_percent().values())
-        features=basic_stats(raw_purity)
-        features+=basic_stats(percent_i)
-        return features
-    purity_dict=helper(data_path)
-    lines=[]
-    for name_i,purity_i in purity_dict.items():
-        id_i=name_i.split('/')[-1]
-        lines.append([id_i]+purity_i)
-    cols= utils.cross(["purity_","percent_"],
-                      ["mean","median","min","max"])
-    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
-    if(out_path):
-        df.to_csv(out_path)
 
 def knn_purity(data,k=10):
     tree=BallTree(data.X)
@@ -95,36 +63,55 @@ def compute_density(value,x=None,show=False,n_steps=100):
         simple_plot(x,dens)
     return x,dens
 
+def cats_by_purity(data_path,out_path):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path):
+        data_i = dataset.read_csv(in_path)
+        purity_i = PurityData(knn_purity(data_i))
+        raw_purity=purity_i.stats("mean")
+        return np.argsort(raw_purity).tolist()
+    purity_dict=helper(data_path)
+    purity_dict={ name_i.split("/")[-1]:value_i 
+            for name_i,value_i in purity_dict.items()}
+    with open(out_path, 'w', encoding='utf-8') as f:
+        json.dump(purity_dict, f, ensure_ascii=False, indent=4)
+
+def purity_dataset(data_path,out_path=None):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path):
+        data_i = dataset.read_csv(in_path)
+        purity_i = PurityData(knn_purity(data_i))
+        raw_purity=purity_i.stats("mean")
+        percent_i= list(data_i.class_percent().values())
+        features=basic_stats(raw_purity)
+        features+=basic_stats(percent_i)
+        return features
+    purity_dict=helper(data_path)
+    lines=[]
+    for name_i,purity_i in purity_dict.items():
+        id_i=name_i.split('/')[-1]
+        lines.append([id_i]+purity_i)
+    cols= utils.cross(["purity_","percent_"],
+                      ["mean","median","min","max"])
+    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
+    if(out_path):
+        df.to_csv(out_path)
+
 @utils.DirFun({'in_path':0,'out_path':1})
-def density_plot(in_path,out_path,k=10,all_cats=True):
+def density_plot(in_path,out_path,k=10,single=True):
     print(in_path)
     data_i = dataset.read_csv(in_path)
     purity_i = PurityData(knn_purity(data_i))
-    raw_purity=purity_i.stats("mean",
-                              single=(not all_cats))
-    raise Exception(raw_purity)
-@utils.DirFun({'in_path':0,'out_path':1})
-def density_plot(in_path,out_path,k=10,all_cats=True):
-    print(in_path)
-    near_mean=near_density(in_path,
-                           k=k,
-                           all_cats=all_cats) 
-    if(all_cats):
-        x_order,dens= compute_density(near_mean,
-                                      show=False,
-                                      n_steps=100)
+    dens_i=purity_i.density(single=single)
+    if(single):
+        x_order,dens=dens_i
         fig, ax = plt.subplots()
         ax.plot(x_order,dens)
         plt.savefig(out_path)
     else:
         fig, ax = plt.subplots()
-        x=np.arange(100)*0.01
-        for i,near_i in enumerate(near_mean):
-            _,dens_i= compute_density(value=near_i,
-                                      x=x,
-                                      show=False,
-                                      n_steps=100)
-            ax.plot(x, dens_i, label=f"{i}-{len(near_i)}")
+        for j,(x_j,dens_j) in enumerate(dens_i):
+            ax.plot(x_j, dens_j, label=f"{j}-{len(x_j)}")
         plt.legend()
         plt.savefig(out_path)
 
@@ -143,8 +130,6 @@ def density_plot(in_path,out_path,k=10,all_cats=True):
 #        same_class=sum(same_class,[])
 #        return np.array(same_class)
 #    return [np.array(cat) for cat in same_class]
-
-
 
 def simple_plot(x_order,dens):
     fig, ax = plt.subplots()
@@ -245,13 +230,12 @@ def build_plot(in_path):
                  result_path=conf["result_path"],
                  clfs=conf["clfs"],
                  k=conf["k"])
-    if(conf["type"]=="acc"):
+    if(conf["type"]=="dens"):
         density_plot(in_path=conf["data_dir"],
                      out_path=conf["output_path"],
                      k=conf["k"],
-                     all_cats=False)
+                     single=True)
     if(conf["type"]=='data'):
-#        purity_dataset
         cats_by_purity(data_path=conf['data_dir'],
                        out_path="purity.json")
     print(conf)

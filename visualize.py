@@ -83,6 +83,17 @@ def stacked_bar_plot(hist,show=True):
         plt.savefig(show)
         plt.clf()
 
+#def show_matrix(matrix):
+#    matrix=np.array(matrix)
+#    matrix[np.isnan(matrix)]=0.0
+#    matrix[matrix==np.inf]=0
+#    matrix/= np.sum(matrix)
+#    print(np.around(matrix,decimals=2))
+#    plt.figure(figsize = (10,7))
+#    sns.heatmap(matrix, annot=True)
+#    plt.show()
+
+
 if __name__ == '__main__':
     a=np.ones((10,10))-np.identity(10)
     show_matrix(a)
