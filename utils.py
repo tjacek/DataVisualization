@@ -85,3 +85,7 @@ def find_dirs(in_path, name):
         if(name in root):
             filtered.append(root)
     return filtered
+
+def to_id_dir(path_dict,index=-1):
+    return { path_i.split("/")[index] :value_i 
+            for path_i,value_i in path_dict.items()}
