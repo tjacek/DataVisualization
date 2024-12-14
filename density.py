@@ -90,18 +90,16 @@ def compute_density(value,x=None,show=False,n_steps=100):
         simple_plot(x,dens)
     return x,dens
 
-def cats_by_purity(data_path,out_path):
-    @utils.DirFun({'in_path':0})
-    def helper(in_path):
-        data_i = dataset.read_csv(in_path)
-        purity_i = PurityData(knn_purity(data_i))
+def cats_by_purity(data_path,out_path,k=10):
+    def helper(purity_i):
         raw_purity=purity_i.stats("mean")
         return np.argsort(raw_purity).tolist()
-    purity_dict=helper(data_path)
-    purity_dict={ name_i.split("/")[-1]:value_i 
-            for name_i,value_i in purity_dict.items()}
-    with open(out_path, 'w', encoding='utf-8') as f:
-        json.dump(purity_dict, f, ensure_ascii=False, indent=4)
+    purity_dict= get_purity_dict(data_path,k=k)
+    purity_dict=purity_dict.iter(fun=helper)   
+    print(purity_dict)
+    if(out_path):
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(purity_dict, f, ensure_ascii=False, indent=4)
 
 def purity_dataset(data_path,out_path=None):
     @utils.DirFun({'in_path':0})
@@ -220,27 +218,37 @@ def acc_points(clf,near_dict,result_path):
             points.append((nn_j,acc_j))
     return np.array(points)
 
-def build_plot(in_path):
-    conf=utils.read_conf(in_path)
-    if(conf["type"]=="acc"):
-        diff_acc_plot(data_path=conf["data_dir"],
-                 result_path=conf["result_path"],
-                 clf_pair=conf["clfs"],
-                 k=conf["k"])
-    if(conf["type"]=="dens"):
-        density_plot(in_path=conf["data_dir"],
-                     out_path=conf["output_path"],
-                     k=conf["k"],
-                     single=True)
-    if(conf["type"]=='data'):
-        cats_by_purity(data_path=conf['data_dir'],
-                       out_path="purity.json")
-    print(conf)
+def make_plot(args):
+    if(args.type=='acc'):
+        diff_acc_plot(data_path=args.data,
+                      result_path=args.result,
+                      clf_pair=args.clfs.split(","))
+    elif(args.type=='density'):
+        density_plot(in_path=args.data,
+                     out_path="density",
+                     single=False)
+#def build_plot(in_path):
+#    conf=utils.read_conf(in_path)
+#    if(conf["type"]=="acc"):
+#        diff_acc_plot(data_path=conf["data_dir"],
+#                 result_path=conf["result_path"],
+#                 clf_pair=conf["clfs"],
+#                 k=conf["k"])
+#    if(conf["type"]=="dens"):
+#        density_plot(in_path=conf["data_dir"],
+#                     out_path=conf["output_path"],
+#                     k=conf["k"],
+#                     single=True)
+#    if(conf["type"]=='data'):
+#        cats_by_purity(data_path=conf['data_dir'],
+#                       out_path="purity.json")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, default="json/purity.js")
+    parser.add_argument("--data", type=str, default="../uci")
+    parser.add_argument("--result", type=str, default="uci_exp/aggr_gauss",)
+    parser.add_argument("--clfs", type=str, default="RF,class_ens")
+    parser.add_argument('--type',default='acc',
+                        choices=['acc','density','diff'])
     args = parser.parse_args()
-    exp=build_plot(args.input)
-#    size_plot("../uci",k=10)
-#    density_plot("../uci","density_cat",all_cats=False)
+    make_plot(args)
