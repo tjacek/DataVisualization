@@ -8,6 +8,21 @@ import seaborn as sns
 import argparse,json
 import dataset,utils
 
+class PurityDict(dict):
+    def __init__(self, args=[]):
+        super(PurityDict, self).__init__(args)
+    
+    def iter(self,fun):
+        return { id_i:fun(purity_i)
+                    for id_i,purity_i in self.items()}
+
+    def enum(self):
+        def helper(purity_i):
+            near=purity_i.stats(type="median",single=False)
+            return  [(i,near_i) 
+                          for i,near_i in enumerate(near)]
+        return self.iter(helper)
+
 class PurityData(object):
     def __init__(self,cats):
         self.cats=cats
@@ -36,10 +51,6 @@ class PurityData(object):
     def sizes(self):
         return [len(cat_i) for cat_i in self.cats]
 
-def basic_stats(vector):
-    return [ stat_i(vector)
-        for stat_i in [np.mean,np.median,np.amin,np.amax]] 
-
 def knn_purity(data,k=10):
     tree=BallTree(data.X)
     indces= tree.query(data.X,
@@ -51,6 +62,19 @@ def knn_purity(data,k=10):
         near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
         purity[int(y_i)].append(np.mean(near))
     return purity
+
+def get_purity_dict(in_path,k=10):
+    @utils.DirFun({'in_path':0})
+    def helper(in_path): 
+        data_i = dataset.read_csv(in_path)
+        return PurityData(knn_purity(data_i))
+    purity_dict=helper(in_path)
+    purity_dict=utils.to_id_dir(purity_dict,index=-1)
+    return PurityDict(purity_dict)
+
+def basic_stats(vector):
+    return [ stat_i(vector)
+        for stat_i in [np.mean,np.median,np.amin,np.amax]] 
 
 def compute_density(value,x=None,show=False,n_steps=100):
     value=value.reshape(-1, 1)
@@ -123,39 +147,22 @@ def simple_plot(x_order,dens):
     ax.plot(x_order,dens)
     plt.show()
 
-#def near_density(in_path,k=10,all_cats=True):
-#    data=dataset.read_csv(in_path)
-#    tree=BallTree(data.X)
-#    indces= tree.query(data.X,
-#                       k=k+1,
-#                       return_distance=False)
-#    same_class=[[] for _ in range(data.n_cats())]
-#    for i,ind_i in enumerate(indces):
-#        y_i=data.y[i]
-#        near=[ int(y_i==data.y[ind_j]) for ind_j in ind_i[1:]]
-#        same_class[int(y_i)].append(np.mean(near))
-#    if(all_cats):
-#        same_class=sum(same_class,[])
-#        return np.array(same_class)
-#    return [np.array(cat) for cat in same_class]
-
 def size_plot(in_path,k=10):
-    @utils.DirFun({'in_path':0})
-    def helper(in_path): 
-        data_i = dataset.read_csv(in_path)
-        purity_i = PurityData(knn_purity(data_i))
+    def helper(purity_i):
         near=purity_i.stats(type="median",single=False)
         return list(zip( purity_i.sizes(),near))
-    near_dict=helper(in_path)
+    purity_dict= get_purity_dict(in_path,k=k)
+    purity_dict=purity_dict.iter(fun=helper)
     points=[]
-    for _,x_i in near_dict.items():
+    for _,x_i in purity_dict.items():
         points+=x_i
     points=np.array(points)
     plt.scatter(x=points[:,0], y=points[:,1])
     plt.show()
 
 def acc_plot(data_path,result_path,clfs="class_ens",k=10):
-    near_dict=get_near_dict(data_path,k=k)
+    purity_dict= get_purity_dict(data_path,k=k)
+    near_dict=  purity_dict.enum()
     if(type(clfs)==str):
         clfs=[clfs]    
     plt.title("Individual classes in uci datasets")
@@ -174,31 +181,21 @@ def acc_plot(data_path,result_path,clfs="class_ens",k=10):
 def diff_acc_plot(data_path,result_path,clf_pair,k=10):
     if(len(clf_pair)<2):
         raise Exception("Two clf required")
-    near_dict=get_near_dict(data_path,k=k)
-    first_points=acc_points(clf=clf_pair[0],
-                            near_dict=near_dict,
-                            result_path=result_path)
-    second_points=acc_points(clf=clf_pair[1],
-                             near_dict=near_dict,
-                             result_path=result_path)
-    x=first_points[:,0]
-    y=first_points[:,1]-second_points[:,1]
+    purity_dict= get_purity_dict(data_path,k=k)
+    near_dict=  purity_dict.enum()    
+
+    points=[acc_points(clf=clf_i,
+                        near_dict=near_dict,
+                        result_path=result_path)
+            for clf_i in clf_pair]
+    x=points[0][:,0]
+    y=points[0][:,1]-points[1][:,1]
     plt.title(f"Diff between {clf_pair[0]} -{clf_pair[1]}")
     plt.scatter(x=x[y<0], y=y[y<0])
     plt.scatter(x=x[y>0], y=y[y>0])
     plt.xlabel(f"knn-purity (k={k})")
     plt.ylabel("Partial Acc Diff")
     plt.show()
-
-#def get_near_dict(data_path,k=10):
-#    @utils.DirFun({'in_path':0})
-#    def nn_helper(in_path):
-#        near_mean=near_density(in_path,
-#                               k=k,
-#                               all_cats=False)
-#        return [ (i,np.median(near_i)) 
-#                    for i,near_i in enumerate(near_mean)]
-#    return nn_helper(data_path)
 
 def acc_points(clf,near_dict,result_path):
     @utils.DirFun({'in_path':0})
@@ -216,8 +213,6 @@ def acc_points(clf,near_dict,result_path):
     acc_dict={path_i.split("/")[2]:value_i  
             for path_i,value_i in acc_dict.items()
                 if(not value_i is None)}
-    near_dict={path_i.split("/")[2]:value_i  
-            for path_i,value_i in near_dict.items()}
     points=[]
     for  key_i in acc_dict:
         for j,nn_j in near_dict[key_i]:
@@ -228,9 +223,9 @@ def acc_points(clf,near_dict,result_path):
 def build_plot(in_path):
     conf=utils.read_conf(in_path)
     if(conf["type"]=="acc"):
-        acc_plot(data_path=conf["data_dir"],
+        diff_acc_plot(data_path=conf["data_dir"],
                  result_path=conf["result_path"],
-                 clfs=conf["clfs"],
+                 clf_pair=conf["clfs"],
                  k=conf["k"])
     if(conf["type"]=="dens"):
         density_plot(in_path=conf["data_dir"],
@@ -242,11 +237,10 @@ def build_plot(in_path):
                        out_path="purity.json")
     print(conf)
 
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, default="json/purity.js")
     args = parser.parse_args()
-#    exp=build_plot(args.input)
-    size_plot("../uci",k=10)
+    exp=build_plot(args.input)
+#    size_plot("../uci",k=10)
 #    density_plot("../uci","density_cat",all_cats=False)
