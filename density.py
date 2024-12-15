@@ -199,7 +199,7 @@ def sig_plot(data_path:str,
              result_path:str,
              sig_path:str,
              clfs:list,
-             scatter=False,
+             scatter=True,
              k=10):
     purity_dict= get_purity_dict(data_path,k=k)
     near_dict=  purity_dict.enum()    
@@ -220,9 +220,10 @@ def sig_plot(data_path:str,
                  for i in range(3)]
     series=[helper(sub_i) for sub_i in subsets]
     if(scatter):
+        series=[ np.array(sum(sub_i,[])) for sub_i in series]
         plt.title(f"Diff between {clfs[0]}-{clfs[1]}")
         label_dict=["no_stat","better","worse"]
-        for i,s_i in enumerate(subsets):
+        for i,s_i in enumerate(series):
             plt.scatter(x=s_i[:,0],y=s_i[:,1],
                     label=label_dict[i])
         plt.xlabel(f"knn-purity (k={k})")
