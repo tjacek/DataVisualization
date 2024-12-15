@@ -195,34 +195,51 @@ def diff_acc_plot(data_path,result_path,clf_pair,k=10):
     plt.ylabel("Partial Acc Diff")
     plt.show()
 
-def sig_plot(data_path,result_path,sig_path,clfs,k=10):
+def sig_plot(data_path:str,
+             result_path:str,
+             sig_path:str,
+             clfs:list,
+             scatter=False,
+             k=10):
     purity_dict= get_purity_dict(data_path,k=k)
     near_dict=  purity_dict.enum()    
     first_acc=get_acc_dict(result_path,clfs[0])
     second_acc=get_acc_dict(result_path,clfs[1])
-
     df=pd.read_csv(sig_path)
-#    types=[[],[],[]]
     def helper(subset):
         points=[]
         for  key_i in subset:
+            points_i=[]
             for j,nn_j in near_dict[key_i]:
                 first_j=first_acc[key_i][j]
                 second_j=second_acc[key_i][j]
-                points.append((nn_j,first_j-second_j))
-        return np.array(points)
+                points_i.append((nn_j,first_j-second_j))
+            points.append(points_i)
+        return points
     subsets=[df[df["target"]==i]['data'].tolist()
                  for i in range(3)]
-    subsets=[helper(sub_i) for sub_i in subsets]
-    plt.title(f"Diff between {clfs[0]}-{clfs[1]}")
-    label_dict=["no_stat","better","worse"]
-    for i,s_i in enumerate(subsets):
-        plt.scatter(x=s_i[:,0],y=s_i[:,1],
+    series=[helper(sub_i) for sub_i in subsets]
+    if(scatter):
+        plt.title(f"Diff between {clfs[0]}-{clfs[1]}")
+        label_dict=["no_stat","better","worse"]
+        for i,s_i in enumerate(subsets):
+            plt.scatter(x=s_i[:,0],y=s_i[:,1],
                     label=label_dict[i])
-    plt.xlabel(f"knn-purity (k={k})")
-    plt.ylabel("Partial Acc Diff")
-    plt.legend()
-    plt.show()
+        plt.xlabel(f"knn-purity (k={k})")
+        plt.ylabel("Partial Acc Diff")
+        plt.legend()
+        plt.show()
+    else:
+        for subset_i,series_i in zip(subsets,series):
+            fig, ax = plt.subplots()
+            for j,ts_j in enumerate(series_i):
+                ts_j=np.array(ts_j)
+                print(type(ts_j))
+                print(ts_j[:,0])
+                ax.scatter(ts_j[:,0], ts_j[:,1], label=subset_i[j])
+            plt.legend()
+            plt.show()
+
 
 def get_acc_dict(result_path,clf):
     @utils.DirFun({'in_path':0})
