@@ -195,7 +195,36 @@ def diff_acc_plot(data_path,result_path,clf_pair,k=10):
     plt.ylabel("Partial Acc Diff")
     plt.show()
 
-def acc_points(clf,near_dict,result_path):
+def sig_plot(data_path,result_path,sig_path,clfs,k=10):
+    purity_dict= get_purity_dict(data_path,k=k)
+    near_dict=  purity_dict.enum()    
+    first_acc=get_acc_dict(result_path,clfs[0])
+    second_acc=get_acc_dict(result_path,clfs[1])
+
+    df=pd.read_csv(sig_path)
+#    types=[[],[],[]]
+    def helper(subset):
+        points=[]
+        for  key_i in subset:
+            for j,nn_j in near_dict[key_i]:
+                first_j=first_acc[key_i][j]
+                second_j=second_acc[key_i][j]
+                points.append((nn_j,first_j-second_j))
+        return np.array(points)
+    subsets=[df[df["target"]==i]['data'].tolist()
+                 for i in range(3)]
+    subsets=[helper(sub_i) for sub_i in subsets]
+    plt.title(f"Diff between {clfs[0]}-{clfs[1]}")
+    label_dict=["no_stat","better","worse"]
+    for i,s_i in enumerate(subsets):
+        plt.scatter(x=s_i[:,0],y=s_i[:,1],
+                    label=label_dict[i])
+    plt.xlabel(f"knn-purity (k={k})")
+    plt.ylabel("Partial Acc Diff")
+    plt.legend()
+    plt.show()
+
+def get_acc_dict(result_path,clf):
     @utils.DirFun({'in_path':0})
     def acc_helper(in_path):
         if(not os.path.isdir(in_path)):
@@ -211,6 +240,10 @@ def acc_points(clf,near_dict,result_path):
     acc_dict={path_i.split("/")[2]:value_i  
             for path_i,value_i in acc_dict.items()
                 if(not value_i is None)}
+    return acc_dict
+
+def acc_points(clf,near_dict,result_path):
+    acc_dict=get_acc_dict(result_path,clf)
     points=[]
     for  key_i in acc_dict:
         for j,nn_j in near_dict[key_i]:
@@ -219,36 +252,31 @@ def acc_points(clf,near_dict,result_path):
     return np.array(points)
 
 def make_plot(args):
-    if(args.type=='acc'):
+    if(args.type=='diff'):
         diff_acc_plot(data_path=args.data,
                       result_path=args.result,
                       clf_pair=args.clfs.split(","))
+    elif(args.type=="acc"):
+        acc_plot(data_path=args.data,
+                 result_path=args.result,
+                 clfs=["RF","class_ens","deep"])
+    elif(args.type=='sig'):
+        sig_plot(data_path=args.data,
+                 result_path=args.result,
+                 sig_path=args.path,
+                 clfs=args.clfs.split(","))
     elif(args.type=='density'):
         density_plot(in_path=args.data,
-                     out_path="density",
+                     out_path=args.path,
                      single=False)
-#def build_plot(in_path):
-#    conf=utils.read_conf(in_path)
-#    if(conf["type"]=="acc"):
-#        diff_acc_plot(data_path=conf["data_dir"],
-#                 result_path=conf["result_path"],
-#                 clf_pair=conf["clfs"],
-#                 k=conf["k"])
-#    if(conf["type"]=="dens"):
-#        density_plot(in_path=conf["data_dir"],
-#                     out_path=conf["output_path"],
-#                     k=conf["k"],
-#                     single=True)
-#    if(conf["type"]=='data'):
-#        cats_by_purity(data_path=conf['data_dir'],
-#                       out_path="purity.json")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="../uci")
     parser.add_argument("--result", type=str, default="uci_exp/aggr_gauss",)
     parser.add_argument("--clfs", type=str, default="RF,class_ens")
-    parser.add_argument('--type',default='acc',
-                        choices=['acc','density','diff'])
+    parser.add_argument("--path", type=str, default="purity/sig.csv")
+    parser.add_argument('--type',default='sig',
+                        choices=['acc','density','diff',"sig"])
     args = parser.parse_args()
     make_plot(args)
