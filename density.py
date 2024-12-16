@@ -5,7 +5,7 @@ from sklearn.neighbors import KernelDensity
 from sklearn.neighbors import BallTree
 from scipy.special import kl_div
 import seaborn as sns
-import argparse,json
+import argparse
 import dataset,utils
 
 class PurityDict(dict):
@@ -72,10 +72,6 @@ def get_purity_dict(in_path,k=10):
     purity_dict=utils.to_id_dir(purity_dict,index=-1)
     return PurityDict(purity_dict)
 
-def basic_stats(vector):
-    return [ stat_i(vector)
-        for stat_i in [np.mean,np.median,np.amin,np.amax]] 
-
 def compute_density(value,x=None,show=False,n_steps=100):
     value=value.reshape(-1, 1)
     kde = KernelDensity(kernel='gaussian', bandwidth=0.1).fit(value)
@@ -89,38 +85,6 @@ def compute_density(value,x=None,show=False,n_steps=100):
     if(show):
         simple_plot(x,dens)
     return x,dens
-
-def cats_by_purity(data_path,out_path,k=10):
-    def helper(purity_i):
-        raw_purity=purity_i.stats("mean")
-        return np.argsort(raw_purity).tolist()
-    purity_dict= get_purity_dict(data_path,k=k)
-    purity_dict=purity_dict.iter(fun=helper)   
-    print(purity_dict)
-    if(out_path):
-        with open(out_path, 'w', encoding='utf-8') as f:
-            json.dump(purity_dict, f, ensure_ascii=False, indent=4)
-
-def purity_dataset(data_path,out_path=None):
-    @utils.DirFun({'in_path':0})
-    def helper(in_path):
-        data_i = dataset.read_csv(in_path)
-        purity_i = PurityData(knn_purity(data_i))
-        raw_purity=purity_i.stats("mean")
-        percent_i= list(data_i.class_percent().values())
-        features=basic_stats(raw_purity)
-        features+=basic_stats(percent_i)
-        return features
-    purity_dict=helper(data_path)
-    lines=[]
-    for name_i,purity_i in purity_dict.items():
-        id_i=name_i.split('/')[-1]
-        lines.append([id_i]+purity_i)
-    cols= utils.cross(["purity_","percent_"],
-                      ["mean","median","min","max"])
-    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
-    if(out_path):
-        df.to_csv(out_path)
 
 @utils.DirFun({'in_path':0,'out_path':1})
 def density_plot(in_path,out_path,k=10,single=True):
@@ -199,7 +163,7 @@ def sig_plot(data_path:str,
              result_path:str,
              sig_path:str,
              clfs:list,
-             scatter=True,
+             scatter=False,
              k=10):
     purity_dict= get_purity_dict(data_path,k=k)
     near_dict=  purity_dict.enum()    
@@ -240,7 +204,6 @@ def sig_plot(data_path:str,
                 ax.scatter(ts_j[:,0], ts_j[:,1], label=subset_i[j])
             plt.legend()
             plt.show()
-
 
 def get_acc_dict(result_path,clf):
     @utils.DirFun({'in_path':0})
