@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import pandas as pd 
 import dataset,density,utils
 
 def ord_exp(in_path,out_path):
@@ -31,20 +32,23 @@ def compute_size(data):
     return list(data.class_percent().values())
 
 def make_dataset(in_path):
-    card_funcs=[compute_purity,compute_size]
+    card_funcs={"purity":compute_purity,
+                "size":compute_size}
     ord_dicts=[gen_ordering(fun=fun_i,
                             in_path=in_path) 
-                for fun_i in card_funcs]
+                for _,fun_i in card_funcs.items()]
     lines=[]
     for name_i in ord_dicts[0]:
-        line_i=[]
+        line_i=[name_i]
         for dict_j in ord_dicts:
             line_i+=basic_stats(dict_j[name_i])
         lines.append(line_i)
     print(lines)
-#    cols= utils.cross(["purity_","percent_"],
-#                      ["mean","median","min","max"])
-#    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
+    cols= utils.cross(card_funcs.keys(),
+                      ["_mean","_median","_min","_max"])
+    print(cols)
+    df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
+    print(df)
 #    if(out_path):
 #        df.to_csv(out_path)
 
