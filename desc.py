@@ -1,6 +1,8 @@
 import numpy as np
 import json
 import pandas as pd 
+import argparse
+from sklearn.tree import DecisionTreeClassifier
 import dataset,density,utils
 
 def ord_exp(in_path,out_path):
@@ -31,7 +33,7 @@ def compute_purity(data):
 def compute_size(data):
     return list(data.class_percent().values())
 
-def make_dataset(in_path):
+def make_dataset(in_path,out_path=None):
     card_funcs={"purity":compute_purity,
                 "size":compute_size}
     ord_dicts=[gen_ordering(fun=fun_i,
@@ -48,10 +50,27 @@ def make_dataset(in_path):
                       ["_mean","_median","_min","_max"])
     print(cols)
     df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
-    print(df)
-#    if(out_path):
-#        df.to_csv(out_path)
+#    print(df)
+    if(out_path):
+        df=df.round(decimals=4)
+        df.to_csv(out_path)
 
+def find_rules(in_path):
+    df=pd.read_csv(in_path)
+    raw=df.to_numpy()
+    X,y=raw[:,2:-1],raw[:,-1]
+    y[y!=1]=0
+    y=y.astype(int)
+    clf = DecisionTreeClassifier(criterion="entropy")
+    clf.fit(X, y)
+#    path=clf.decision_path(X)
+    print( df.columns[2:] )
+    import sklearn.tree
+    from matplotlib import pyplot as plt
+    sklearn.tree.plot_tree(clf, 
+                           proportion=True,
+                           feature_names=df.columns[2:])
+    plt.show()
 #def cats_by_purity(data_path,out_path,k=10):
 #    def helper(purity_i):
 #        raw_purity=purity_i.stats("mean")
@@ -69,4 +88,13 @@ def basic_stats(vector):
 
 if __name__ == '__main__':
 #    ord_exp(in_path="../uci",out_path="ord")
-     make_dataset("../uci")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", type=str, default="rules.csv")
+    parser.add_argument("--source", type=str, default="../uci")
+    parser.add_argument('--make', action='store_true')
+    args = parser.parse_args()
+    if(args.make):
+        make_dataset(in_path=args.source,
+                     out_path=args.data)
+    else:
+        find_rules(in_path=args.data)
