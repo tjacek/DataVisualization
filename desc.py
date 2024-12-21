@@ -2,6 +2,8 @@ import numpy as np
 import json
 import pandas as pd 
 import argparse
+import sklearn.tree
+from matplotlib import pyplot as plt
 from sklearn.tree import DecisionTreeClassifier
 import dataset,density,utils
 
@@ -59,28 +61,31 @@ def find_rules(in_path):
     df=pd.read_csv(in_path)
     raw=df.to_numpy()
     X,y=raw[:,2:-1],raw[:,-1]
-    y[y!=1]=0
+    X=X[y!=0,:]
+    y=y[y!=0]
+#    raise Exception(X)
     y=y.astype(int)
     clf = DecisionTreeClassifier(criterion="entropy")
     clf.fit(X, y)
 #    path=clf.decision_path(X)
     print( df.columns[2:] )
-    import sklearn.tree
-    from matplotlib import pyplot as plt
+
     sklearn.tree.plot_tree(clf, 
                            proportion=True,
                            feature_names=df.columns[2:])
     plt.show()
-#def cats_by_purity(data_path,out_path,k=10):
-#    def helper(purity_i):
-#        raw_purity=purity_i.stats("mean")
-#        return np.argsort(raw_purity).tolist()
-#    purity_dict= get_purity_dict(data_path,k=k)
-#    purity_dict=purity_dict.iter(fun=helper)   
-#    print(purity_dict)
-#    if(out_path):
-#        with open(out_path, 'w', encoding='utf-8') as f:
-#            json.dump(purity_dict, f, ensure_ascii=False, indent=4)
+
+def plot_feat(in_path,
+              x_feat='size_max',
+              y_feat='purity_mean'):
+    df=pd.read_csv(in_path)
+    x_feat,y_feat=df[x_feat].tolist(),df[y_feat].tolist()
+    names=df['data'].tolist()
+    for i,name_i in enumerate(names):
+        plt.text(x_feat[i], 
+                 y_feat[i], 
+                 name_i)
+    plt.show()
 
 def basic_stats(vector):
     return [ stat_i(vector)
@@ -89,7 +94,7 @@ def basic_stats(vector):
 if __name__ == '__main__':
 #    ord_exp(in_path="../uci",out_path="ord")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="rules.csv")
+    parser.add_argument("--data", type=str, default="desc/rules_balance.csv")
     parser.add_argument("--source", type=str, default="../uci")
     parser.add_argument('--make', action='store_true')
     args = parser.parse_args()
@@ -97,4 +102,5 @@ if __name__ == '__main__':
         make_dataset(in_path=args.source,
                      out_path=args.data)
     else:
-        find_rules(in_path=args.data)
+#        find_rules(in_path=args.data)
+         plot_feat(in_path=args.data)
