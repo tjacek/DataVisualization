@@ -67,7 +67,6 @@ def find_rules(in_path):
     y=y.astype(int)
     clf = DecisionTreeClassifier(criterion="entropy")
     clf.fit(X, y)
-#    path=clf.decision_path(X)
     print( df.columns[2:] )
 
     sklearn.tree.plot_tree(clf, 
@@ -76,15 +75,19 @@ def find_rules(in_path):
     plt.show()
 
 def plot_feat(in_path,
-              x_feat='size_max',
-              y_feat='purity_mean'):
+              x_feat='purity_max',
+              y_feat='size_max'):
     df=pd.read_csv(in_path)
-    x_feat,y_feat=df[x_feat].tolist(),df[y_feat].tolist()
-    names=df['data'].tolist()
+    x,y=df[x_feat].tolist(),df[y_feat].tolist()
+    names,target=df['data'].tolist(),df['target'].tolist()
+    colors=['g','b','r']
     for i,name_i in enumerate(names):
-        plt.text(x_feat[i], 
-                 y_feat[i], 
-                 name_i)
+        plt.text(x[i], 
+                 y[i], 
+                 name_i,
+                 color=colors[target[i]])
+    plt.xlabel(x_feat)
+    plt.ylabel(y_feat)
     plt.show()
 
 def basic_stats(vector):
