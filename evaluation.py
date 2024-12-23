@@ -9,7 +9,6 @@ from sklearn.metrics import accuracy_score,balanced_accuracy_score
 from scipy import stats
 import pandas as pd
 import argparse,itertools
-
 import dataset,exp
 
 class MetricDict(object):
@@ -71,7 +70,6 @@ def stat_test(in_path,query=None):
         valid_id= query_fun(data_k)
         for id_x,id_y in itertools.combinations(valid_id, 2):
             line=[id_x,id_y]
-#            print(line)
             for metric_i in metrict_dict.metric_name():
                 x_metric=metrict_dict.dicts[metric_i][id_x]
                 y_metric=metrict_dict.dicts[metric_i][id_y]
@@ -111,6 +109,25 @@ def read_results(in_path:str):
 def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
+def format_sign(df):
+    cols=['data','clf_x','clf_y']+df.columns[2:].tolist()
+    lines=[]
+    for i,row_i in df.iterrows():
+        row_i=row_i.tolist()
+        first=row_i[0].split(",")
+        row_i[1]= row_i[1].split(",")[-1]
+        row_i= [first[0],first[-1]]+row_i[1:]    
+        line_i=[]
+        for col_j in row_i:
+            if(type(col_j)==float):
+                line_i.append(f"{col_j:.5f}")
+            else:
+                line_i.append(str(col_j))
+        lines.append(line_i)
+    df=pd.DataFrame.from_records(lines,
+                                 columns=cols)
+    return df
+
 def eval(args):
     if(args.summary):
         df=basic_summary(args.input)
@@ -118,14 +135,14 @@ def eval(args):
     clfs=args.clfs.split(",")
     if(len(clfs)>1):
         df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
-#        df=df.sort_values(by=['balance_diff'])
         df=df.sort_values(by=[args.sort])
+        df=format_sign(df)
         print(df)    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", type=str, default="uci_exp/aggr_gauss")
-    parser.add_argument("--clfs", type=str, default="RF,gauss_ens")
+    parser.add_argument("--clfs", type=str, default="RF,class_ens")
     parser.add_argument('--summary', action='store_true')
     parser.add_argument('--sort', type=str, default="balance_diff")
     args = parser.parse_args()
