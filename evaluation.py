@@ -53,7 +53,9 @@ def basic_summary(in_path:str):
             line_i.append( np.mean(values))
             line_i.append( np.std(values))
         lines.append(line_i)
-    df=pd.DataFrame.from_records(lines)
+    cols=["id",'acc_mean','acc_std','balance_mean','balance_std']
+    df=pd.DataFrame.from_records(lines,
+                                  columns=cols)
     return df	
 
 def stat_test(in_path,query=None):
@@ -122,6 +124,12 @@ def eval(args):
     clfs=args.clfs.split(",")
     if(args.summary):
         df=basic_summary(args.input)
+        df['data']=df['id'].apply(lambda str_i:str_i.split(",")[0])
+        df['clf']=df['id'].apply(lambda str_i:str_i.split(",")[-1])
+        df.drop(['id'], axis='columns', inplace=True)
+        df=df[ ['data','clf']+df.columns.tolist()[:-2]]
+        df=df.round(2)
+        df = df[df['clf'].isin(clfs)] 
         return df
     if(len(clfs)>1):
         df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
