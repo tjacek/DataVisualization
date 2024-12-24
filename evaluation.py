@@ -110,34 +110,23 @@ def get_id(path:str):
     return ",".join( path.split('/')[-3:])
 
 def format_sign(df):
-    cols=['data','clf_x','clf_y']+df.columns[2:].tolist()
-    lines=[]
-    for i,row_i in df.iterrows():
-        row_i=row_i.tolist()
-        first=row_i[0].split(",")
-        row_i[1]= row_i[1].split(",")[-1]
-        row_i= [first[0],first[-1]]+row_i[1:]    
-        line_i=[]
-        for col_j in row_i:
-            if(type(col_j)==float):
-                line_i.append(f"{col_j:.5f}")
-            else:
-                line_i.append(str(col_j))
-        lines.append(line_i)
-    df=pd.DataFrame.from_records(lines,
-                                 columns=cols)
+    df['clf_y']=df['id_y'].apply(lambda str_i:str_i.split(",")[-1])
+    df['data']=df['id_x'].apply(lambda str_i:str_i.split(",")[0])
+    df['clf_x']=df['id_x'].apply(lambda str_i:str_i.split(",")[-1])
+    df.drop(['id_x', 'id_y'], axis='columns', inplace=True)
+    df=df[ ['data','clf_x','clf_y']+df.columns.tolist()[:-3]]
+    df=df.round(4)
     return df
 
 def eval(args):
+    clfs=args.clfs.split(",")
     if(args.summary):
         df=basic_summary(args.input)
-        print(df)
-    clfs=args.clfs.split(",")
+        return df
     if(len(clfs)>1):
         df=stat_test(args.input,[f'base,{clfs[0]}',f'base,{clfs[1]}'])
         df=df.sort_values(by=[args.sort])
-        df=format_sign(df)
-        print(df)    
+        return format_sign(df)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -146,4 +135,5 @@ if __name__ == '__main__':
     parser.add_argument('--summary', action='store_true')
     parser.add_argument('--sort', type=str, default="balance_diff")
     args = parser.parse_args()
-    eval(args)
+    df=eval(args)
+    print(df)
