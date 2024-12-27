@@ -52,7 +52,6 @@ def make_dataset(in_path,out_path=None):
                       ["_mean","_median","_min","_max"])
     print(cols)
     df=pd.DataFrame.from_records(lines,columns= ["data"]+cols)
-#    print(df)
     if(out_path):
         df=df.round(decimals=4)
         df.to_csv(out_path)
@@ -61,21 +60,28 @@ def find_rules(in_path):
     df=pd.read_csv(in_path)
     raw=df.to_numpy()
     X,y=raw[:,2:-1],raw[:,-1]
-    X=X[y!=0,:]
-    y=y[y!=0]
-#    raise Exception(X)
-    y=y.astype(int)
-    clf = DecisionTreeClassifier(criterion="entropy")
-    clf.fit(X, y)
-    print( df.columns[2:] )
-
+    clf = DecisionTreeClassifier(criterion="entropy",
+                                 max_depth=None)
+    new_X,new_y=filter_nosig(X,y)
+    clf.fit(new_X, new_y)
     sklearn.tree.plot_tree(clf, 
                            proportion=True,
                            feature_names=df.columns[2:])
+    y_pred=clf.predict(X)
+    print("class_ens")
+    print(df.data[y_pred==1])
+    print("RF")
+    print(df.data[y_pred==2])
     plt.show()
 
+def filter_nosig(X,y):
+    X=X[y!=0,:]
+    y=y[y!=0]
+    y=y.astype(int)
+    return X,y
+
 def plot_feat(in_path,
-              x_feat='purity_max',
+              x_feat='purity_min',
               y_feat='size_max'):
     df=pd.read_csv(in_path)
     x,y=df[x_feat].tolist(),df[y_feat].tolist()
@@ -105,5 +111,5 @@ if __name__ == '__main__':
         make_dataset(in_path=args.source,
                      out_path=args.data)
     else:
-#        find_rules(in_path=args.data)
-         plot_feat(in_path=args.data)
+        find_rules(in_path=args.data)
+#         plot_feat(in_path=args.data)
