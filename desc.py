@@ -81,8 +81,8 @@ def filter_nosig(X,y):
     return X,y
 
 def plot_feat(in_path,
-              x_feat='purity_min',
-              y_feat='size_max'):
+              x_feat='size_max',
+              y_feat='n_cats'):
     df=pd.read_csv(in_path)
     x,y=df[x_feat].tolist(),df[y_feat].tolist()
     names,target=df['data'].tolist(),df['target'].tolist()
@@ -92,6 +92,8 @@ def plot_feat(in_path,
                  y[i], 
                  name_i,
                  color=colors[target[i]])
+    plt.xlim([0, max(x)])
+    plt.ylim([0, max(y)])
     plt.xlabel(x_feat)
     plt.ylabel(y_feat)
     plt.show()
@@ -103,7 +105,7 @@ def basic_stats(vector):
 if __name__ == '__main__':
 #    ord_exp(in_path="../uci",out_path="ord")
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data", type=str, default="desc/rules_balance.csv")
+    parser.add_argument("--data", type=str, default="desc/rules_agum.csv")
     parser.add_argument("--source", type=str, default="../uci")
     parser.add_argument('--make', action='store_true')
     args = parser.parse_args()
@@ -112,4 +114,4 @@ if __name__ == '__main__':
                      out_path=args.data)
     else:
         find_rules(in_path=args.data)
-#         plot_feat(in_path=args.data)
+        plot_feat(in_path=args.data)
